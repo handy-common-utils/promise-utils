@@ -1,0 +1,40 @@
+{
+  "name": "@handy-common-utils/promise-utils",
+  "version": "1.0.0",
+  "description": "Promise related utilities",
+  "scripts": {
+    "pretest": "eslint . --ext .ts",
+    "test": "nyc mocha -r ts-node/register test/**/*spec.ts",
+    "prepare": "shx rm -rf dist && tsc",
+    "preversion": "generate-api-docs-and-update-readme && git add README.md"
+  },
+  "files": [
+    "package.json",
+    "dist"
+  ],
+  "main": "dist/promise-utils.js",
+  "types": "dist/promise-utils.d.ts",
+  "bin": {},
+  "dependencies": {},
+  "devDependencies": {
+    "@handy-common-utils/dev-dependencies": "^1.0.5"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://github.com/handy-common-utils/promise-utils#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/handy-common-utils/promise-utils.git"
+  },
+  "bugs": {
+    "url": "https://github.com/handy-common-utils/promise-utils/issues"
+  },
+  "keywords": [
+    "prmomise",
+    "utils",
+    "utilities"
+  ],
+  "author": "James Hu",
+  "license": "Apache-2.0"
+}
