@@ -1,0 +1,7 @@
+extends:
+  - ./node_modules/@handy-common-utils/dev-dependencies/.eslintrc
+rules:
+  no-constant-condition: 
+    - error
+    - 
+      checkLoops: false
