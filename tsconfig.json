@@ -1,3 +1,10 @@
 {
-  "extends": "./node_modules/@handy-common-utils/dev-dependencies/tsconfig.json"
+  "extends": "./node_modules/@handy-common-utils/dev-dependencies/tsconfig.json",
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts"
+  ]
 }
