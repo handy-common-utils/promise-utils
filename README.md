@@ -13,19 +13,25 @@ npm install @handy-common-utils/promise-utils
 Then you can use it in the code:
 
 ```javascript
-import { FsUtils } from 'fs-utils';
+import { PromiseUtils } from '@handy-common-utils/promise-utils';
 
-const [,, filePath, matchPattern, beforeString, afterString] = process.argv;
-await FsUtils.addSurroundingInFile(filePath, new RegExp(matchPattern), beforeString, afterString);
+async repeatFetchingItemsByPosition<T>(
+  fetchItemsByPosition: (parameter: { position?: string }) => Promise<{ position?: string; items?: Array<T> }>,
+) {
+  return PromiseUtils.repeat(
+    fetchItemsByPosition,
+    response => response.position ? { position: response.position } : null,
+    (collection, response) => response.items ? collection.concat(response.items) : collection,
+    [] as Array<T>,
+  );
+}
 ```
 
 You can either import and use the [class](#classes) as shown above,
 or you can import individual [functions](#variables) directly like below:
 
 ```javascript
-import { addSurroundingInFile } from 'fs-utils';
-
-await addSurroundingInFile(README_MD_FILE, /<example>(.*?)<\/example>/gms, '<example><b>', '</b></example>');
+import { repeat } from '@handy-common-utils/promise-utils';
 ```
 
 # API
