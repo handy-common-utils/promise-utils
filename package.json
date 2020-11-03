@@ -17,8 +17,7 @@
   "bin": {},
   "dependencies": {},
   "devDependencies": {
-    "@handy-common-utils/dev-dependencies": "^1.0.10",
-    "@types/node": "^10.17.44"
+    "@handy-common-utils/dev-dependencies": "^1.0.10"
   },
   "publishConfig": {
     "access": "public"
