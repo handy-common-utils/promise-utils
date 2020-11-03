@@ -4,7 +4,7 @@
   "description": "Promise related utilities",
   "scripts": {
     "pretest": "eslint . --ext .ts",
-    "test": "nyc mocha -r ts-node/register test/**/*spec.ts",
+    "test": "nyc mocha -r ts-node/register test/**/*.spec.ts",
     "prepare": "shx rm -rf dist && tsc",
     "preversion": "generate-api-docs-and-update-readme && git add README.md"
   },
