@@ -151,6 +151,12 @@ export abstract class PromiseUtils {
     return Promise.race([operation, PromiseUtils.delayedReject(rejectReason, ms)]);
   }
 
+  /**
+   * Get the state of the Promise.
+   * Please note that the returned value is a Promise, although it resolves immediately.
+   * @param p the Promise for which we would like to know its state
+   * @return A Promise that resolves immediately cotaining the state of the input Promise
+   */
   static promiseState(p: Promise<any>): Promise<PromiseState> {
     const t = {};
     return Promise.race([p, t])
