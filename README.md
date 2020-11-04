@@ -47,6 +47,10 @@ import { repeat } from '@handy-common-utils/promise-utils';
 
 ### Index
 
+#### Enumerations
+
+* [PromiseState](#enumspromisestatemd)
+
 #### Classes
 
 * [PromiseUtils](#classespromiseutilsmd)
@@ -60,7 +64,9 @@ import { repeat } from '@handy-common-utils/promise-utils';
 * [delayedReject](#delayedreject)
 * [delayedResolve](#delayedresolve)
 * [inParallel](#inparallel)
+* [promiseState](#promisestate)
 * [repeat](#repeat)
+* [synchronized](#synchronized)
 * [timeoutReject](#timeoutreject)
 * [timeoutResolve](#timeoutresolve)
 
@@ -96,9 +102,21 @@ ___
 
 ___
 
+#### promiseState
+
+• `Const` **promiseState**: [promiseState](#promisestate) = PromiseUtils.promiseState
+
+___
+
 #### repeat
 
 • `Const` **repeat**: [repeat](#repeat) = PromiseUtils.repeat
+
+___
+
+#### synchronized
+
+• `Const` **synchronized**: [synchronized](#synchronized) = PromiseUtils.synchronized
 
 ___
 
@@ -134,7 +152,9 @@ ___
 * [delayedReject](#delayedreject)
 * [delayedResolve](#delayedresolve)
 * [inParallel](#inparallel)
+* [promiseState](#promisestate)
 * [repeat](#repeat)
+* [synchronized](#synchronized)
 * [timeoutReject](#timeoutreject)
 * [timeoutResolve](#timeoutresolve)
 
@@ -231,6 +251,25 @@ Promise of void if the operation function does not return a value,
 
 ___
 
+##### promiseState
+
+▸ `Static` **promiseState**(`p`: Promise\<any>): Promise\<[PromiseState](#enumspromisestatemd)>
+
+Get the state of the Promise.
+Please note that the returned value is a Promise, although it resolves immediately.
+
+###### Parameters:
+
+Name | Type | Description |
+------ | ------ | ------ |
+`p` | Promise\<any> | the Promise for which we would like to know its state |
+
+**Returns:** Promise\<[PromiseState](#enumspromisestatemd)>
+
+A Promise that resolves immediately cotaining the state of the input Promise
+
+___
+
 ##### repeat
 
 ▸ `Static` **repeat**\<Result, Param, Collection>(`operation`: (parameter: Partial\<Param>) => Promise\<Result>, `nextParameter`: (response: Result) => Partial\<Param> \| null, `collect`: (collection: Collection, result: Result) => Collection, `initialCollection`: Collection, `initialParameter?`: Partial\<Param>): Promise\<Collection>
@@ -270,6 +309,34 @@ Name | Type | Default value | Description |
 **Returns:** Promise\<Collection>
 
 Promise of collection of all the results returned by the operation function
+
+___
+
+##### synchronized
+
+▸ `Static` **synchronized**\<T>(`lock`: any, `operation`: (previousState: [PromiseState](#enumspromisestatemd) \| undefined, previousSettledState: [PromiseState](#enumspromisestatemd) \| undefined, previousResult: any) => Promise\<T>): Promise\<T>
+
+Equivalent of `synchronized` in Java.
+In any situation there's no concurrent execution of any operation function associated with the same lock.
+The operation function has access to the state (when `synchronized` is called), settledState (when the operation function is called), and result of the previous operation.
+In case there is no previous invocation, state, settledState and result would all be undefined.
+
+###### Type parameters:
+
+Name |
+------ |
+`T` |
+
+###### Parameters:
+
+Name | Type | Description |
+------ | ------ | ------ |
+`lock` | any | the object (could be a string, a number, or `this` in a class) that is used to apply the lock |
+`operation` | (previousState: [PromiseState](#enumspromisestatemd) \| undefined, previousSettledState: [PromiseState](#enumspromisestatemd) \| undefined, previousResult: any) => Promise\<T> | function for doing the computation and returning a Promise |
+
+**Returns:** Promise\<T>
+
+the result of the operation function
 
 ___
 
@@ -324,4 +391,41 @@ Name | Type | Description |
 **Returns:** Promise\<T>
 
 the new Promise that resolves to the specified result in case timeout happens
+
+## Enums
+
+
+<a name="enumspromisestatemd"></a>
+
+**[@handy-common-utils/promise-utils](#readmemd)**
+
+> [Globals](#readmemd) / PromiseState
+
+### Enumeration: PromiseState
+
+#### Index
+
+##### Enumeration members
+
+* [Fulfilled](#fulfilled)
+* [Pending](#pending)
+* [Rejected](#rejected)
+
+#### Enumeration members
+
+##### Fulfilled
+
+•  **Fulfilled**:  = "Fulfilled"
+
+___
+
+##### Pending
+
+•  **Pending**:  = "Pending"
+
+___
+
+##### Rejected
+
+•  **Rejected**:  = "Rejected"
 <!-- API end -->
