@@ -1,6 +1,12 @@
 /* eslint-disable no-await-in-loop */
 type InParrellelResult<T> = T extends void ? void : Array<T>;
 
+export enum PromiseState {
+  Pending = 'Pending',
+  Fulfilled = 'Fulfilled',
+  Rejected = 'Rejected',
+}
+
 export abstract class PromiseUtils {
   /**
    * Do an operation repeatedly and collect all the results.
@@ -144,6 +150,46 @@ export abstract class PromiseUtils {
   static timeoutReject<T>(operation: Promise<T>, ms: number, rejectReason: any): Promise<T> {
     return Promise.race([operation, PromiseUtils.delayedReject(rejectReason, ms)]);
   }
+
+  static promiseState(p: Promise<any>): Promise<PromiseState> {
+    const t = {};
+    return Promise.race([p, t])
+      .then(v => (v === t) ? PromiseState.Pending : PromiseState.Fulfilled, () => PromiseState.Rejected);
+  }
+
+  private static synchronizationLocks = new Map<any, Promise<any>>();
+
+  /**
+   * Equivalent of `synchronized` in Java.
+   * In any situation there's no concurrent execution of any operation function associated with the same lock.
+   * The operation function has access to the state (when `synchronized` is called), settledState (when the operation function is called), and result of the previous operation.
+   * In case there is no previous invocation, state, settledState and result would all be undefined.
+   * @param lock        the object (could be a string, a number, or `this` in a class) that is used to apply the lock
+   * @param operation   function for doing the computation and returning a Promise
+   * @returns the result of the operation function
+   */
+  static async synchronized<T>(lock: any, operation: (previousState: PromiseState | undefined, previousSettledState: PromiseState | undefined, previousResult: any) => Promise<T>): Promise<T> {
+    let resultPromise: Promise<T>;
+    const previousResultPromise = PromiseUtils.synchronizationLocks.get(lock);
+    let previousState: PromiseState | undefined;
+    if (previousResultPromise !== undefined) {
+      previousState = await PromiseUtils.promiseState(previousResultPromise);
+    }
+    switch (previousState) {
+      case PromiseState.Pending:  // concurrency
+        resultPromise = previousResultPromise!.then(result => operation(PromiseState.Pending, PromiseState.Fulfilled, result), reason => operation(PromiseState.Pending, PromiseState.Rejected, reason));
+        break;
+      case undefined: // no concurrency and no history
+        resultPromise = operation(undefined, undefined, undefined);
+        break;
+      default:  // no concurrency but with history
+        resultPromise = operation(previousState, previousState, await previousResultPromise!.catch(error => error));
+        break;
+    }
+
+    PromiseUtils.synchronizationLocks.set(lock, resultPromise);
+    return resultPromise;
+  }
 }
 
 export const repeat = PromiseUtils.repeat;
@@ -152,3 +198,5 @@ export const delayedResolve = PromiseUtils.delayedResolve;
 export const delayedReject = PromiseUtils.delayedReject;
 export const timeoutResolve = PromiseUtils.timeoutResolve;
 export const timeoutReject = PromiseUtils.timeoutReject;
+export const synchronized = PromiseUtils.synchronized;
+export const promiseState = PromiseUtils.promiseState;
