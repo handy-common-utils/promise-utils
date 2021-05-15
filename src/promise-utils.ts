@@ -71,10 +71,13 @@ export abstract class PromiseUtils {
    * @param backoff Array of retry backoff periods (unit: milliseconds) or function for calculating them.
    *                If retry is desired, before making next call to the operation the desired backoff period would be waited.
    *                If the array runs out of elements or the function returns `undefined`, there would be no further call to the operation.
+   *                The `attempt` argument passed into backoff function starts from 2 because only retries need to backoff,
+   *                so the first retry is the second attempt.
    * @param shouldRetry Predicate function for deciding whether another call to the operation should happen.
    *                    If this argument is not defined, retry would happen whenever the operation rejects with an error.
    *                    `shouldRetry` would be evaluated before `backoff`.
-   * @returns Promise of the operation result
+   *                    The `attempt` argument passed into shouldRetry function starts from 1.
+   * @returns Promise of the operation result potentially with retries already applied
    */
   static async withRetry<Result, TError = any>(
     operation: (attempt: number, previousResult: Result|undefined, previousError: TError|undefined) => Promise<Result>,
