@@ -1,5 +1,4 @@
 /* eslint-disable no-await-in-loop */
-type InParrellelResult<T> = T extends void ? void : Array<T>;
 
 export enum PromiseState {
   Pending = 'Pending',
@@ -127,17 +126,18 @@ export abstract class PromiseUtils {
    *                    This function is safe when there are infinite unknown number of elements in the job data.
    * @param operation   the function that turns job data into result asynchronously
    * @returns Promise of void if the operation function does not return a value,
-   *          or promise of an arry containing results returned from the operation function.
+   *          or promise of an array containing results returned from the operation function.
+   *          In the array containing results, each element is either the fulfilled result, or the rejected error/reason.
    */
-  static async inParallel<Data, Result>(
+  static async inParallel<Data, Result, TError = Result>(
     parallelism: number,
     jobs: Iterable<Data>,
     operation: (job: Data, index: number) => Promise<Result>,
-  ): Promise<InParrellelResult<Result>> {
+  ): Promise<Array<Result | TError>> {
     if (parallelism < 1) {
       parallelism = 1;
     }
-    const jobResults = new Array<Result>();
+    const jobResults = new Array<Result | TError>();
     let index = 0;
     const iterator = jobs[Symbol.iterator]();
     const promises = Array.from({ length: Math.floor(parallelism) }).fill(0).map(async _ => {
@@ -150,34 +150,35 @@ export abstract class PromiseUtils {
         const job = iteratorResult.value;
         const jobIndex = index++;
         const jobResultPromise = operation(job, jobIndex);
-        const jobResult = await jobResultPromise;
-        if (jobResult !== undefined) {
-          jobResults[jobIndex] = jobResult;
-        }
+        jobResults[jobIndex] = await jobResultPromise.catch(error => error);
       }
     });
     await Promise.all(promises);
-    return (jobResults.length > 0 ? jobResults : undefined) as InParrellelResult<Result>;
+    return jobResults;
   }
 
   /**
    * Create a Promise that resolves after number of milliseconds specified
    * @param ms number of milliseconds after which the created Promise would resolve
-   * @param result the result to be resolved for the Promise
+   * @param result the result to be resolved for the Promise, or a function that supplies the reuslt.
    * @returns the new Promise created
    */
-  static delayedResolve<T>(ms: number, result?: T | PromiseLike<T>): Promise<T> {
-    return new Promise(resolve => setTimeout(() => resolve(result as T), ms));
+  static delayedResolve<T>(ms: number, result?: T | PromiseLike<T> | (() => (T | PromiseLike<T>))): Promise<T> {
+    return new Promise(resolve => setTimeout(() => resolve(
+      typeof result === 'function' ? (result as (() => T | PromiseLike<T>))() : result as T | PromiseLike<T>,
+    ), ms));
   }
 
   /**
    * Create a Promise that rejects after number of milliseconds specified
    * @param ms number of milliseconds after which the created Promise would reject
-   * @param reason the reason of the rejection for the Promise
+   * @param reason the reason of the rejection for the Promise, or a function that supplies the reason.
    * @returns the new Promise created
    */
-  static delayedReject<T = never>(ms: number, reason: any): Promise<T> {
-    return new Promise((_resolve, reject) => setTimeout(() => reject(reason), ms));
+  static delayedReject<T = never, R = any>(ms: number, reason: R | (() => R)): Promise<T> {
+    return new Promise((_resolve, reject) => setTimeout(() => reject(
+      typeof reason === 'function' ? (reason as (() => R))() : reason as R,
+    ), ms));
   }
 
   /**
@@ -185,10 +186,10 @@ export abstract class PromiseUtils {
    * If timeout does not happen, the resolved result or rejection reason of the original operation would be returned.
    * @param operation the original operation that timeout would be applied
    * @param ms number of milliseconds for the timeout
-   * @param result the result to be resolved in case timeout happens
+   * @param result the result to be resolved in case timeout happens, or a function that supplies the reuslt.
    * @return the new Promise that resolves to the specified result in case timeout happens
    */
-  static timeoutResolve<T>(operation: Promise<T>, ms: number, result?: T | PromiseLike<T> | undefined): Promise<T> {
+  static timeoutResolve<T>(operation: Promise<T>, ms: number, result?: T | PromiseLike<T> | (() => (T | PromiseLike<T>)) | undefined): Promise<T> {
     return Promise.race([operation, PromiseUtils.delayedResolve(ms, result)]);
   }
 
@@ -197,11 +198,11 @@ export abstract class PromiseUtils {
    * If timeout does not happen, the resolved result or rejection reason of the original operation would be returned.
    * @param operation the original operation that timeout would be applied
    * @param ms number of milliseconds for the timeout
-   * @param rejectReason the reason of the rejection in case timeout happens
+   * @param rejectReason the reason of the rejection in case timeout happens, or a function that supplies the reason.
    * @return the new Promise that rejects with the specified reason in case timeout happens
    */
-  static timeoutReject<T>(operation: Promise<T>, ms: number, rejectReason: any): Promise<T> {
-    return Promise.race([operation, PromiseUtils.delayedReject(rejectReason, ms)]);
+  static timeoutReject<T = never, R = any>(operation: Promise<T>, ms: number, rejectReason: R | (() => R)): Promise<T> {
+    return Promise.race([operation, PromiseUtils.delayedReject(ms, rejectReason)]);
   }
 
   /**
@@ -221,7 +222,8 @@ export abstract class PromiseUtils {
   /**
    * Equivalent of `synchronized` in Java.
    * In any situation there's no concurrent execution of any operation function associated with the same lock.
-   * The operation function has access to the state (when `synchronized` is called), settledState (when the operation function is called), and result of the previous operation.
+   * The operation function has access to the state (when `synchronized` is called), settledState (when the operation function is called),
+   * and result (could be the fulfilled result or the rejected reason) of the previous operation.
    * In case there is no previous invocation, state, settledState and result would all be undefined.
    * @param lock        the object (could be a string, a number, or `this` in a class) that is used to apply the lock
    * @param operation   function for doing the computation and returning a Promise
