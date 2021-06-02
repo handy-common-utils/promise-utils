@@ -85,7 +85,7 @@ export abstract class PromiseUtils {
   ): Promise<Result> {
     type OperationOutcome = {result?: Result; error?: TError};
     let attempt = 1;
-    return PromiseUtils.repeat<OperationOutcome, OperationOutcome, Promise<Result>>(
+    const finalOutcome = await PromiseUtils.repeat<OperationOutcome, OperationOutcome, OperationOutcome>(
       (previousOutcome: Partial<OperationOutcome>) => operation(attempt, previousOutcome.result, previousOutcome.error).then(result => ({ result })).catch(error => ({ error })),
       outcome => {
         if (!shouldRetry(outcome.error, outcome.result, attempt)) {
@@ -100,9 +100,13 @@ export abstract class PromiseUtils {
         attempt++;
         return PromiseUtils.delayedResolve(backoffMs, outcome);
       },
-      (_, outcome) => outcome.error === undefined ? Promise.resolve(outcome.result!) : Promise.reject(outcome.error),
-      Promise.resolve({} as Result), // it is actually not used
+      (_, outcome) => outcome,
+      {}, // it is actually not used
     );
+    if (finalOutcome.error !== undefined) {
+      throw finalOutcome.error;
+    }
+    return finalOutcome.result!;
   }
 
   /**
