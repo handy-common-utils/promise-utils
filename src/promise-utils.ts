@@ -101,7 +101,7 @@ export abstract class PromiseUtils {
         return PromiseUtils.delayedResolve(backoffMs, outcome);
       },
       (_, outcome) => outcome.error === undefined ? Promise.resolve(outcome.result!) : Promise.reject(outcome.error),
-      Promise.reject(),
+      Promise.resolve({} as Result), // it is actually not used
     );
   }
 
