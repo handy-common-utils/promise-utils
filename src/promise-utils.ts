@@ -1,4 +1,7 @@
+/* eslint-disable unicorn/no-null */
 /* eslint-disable no-await-in-loop */
+
+export const FIBONACCI_SEQUENCE = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811];
 
 export enum PromiseState {
   Pending = 'Pending',
@@ -69,7 +72,8 @@ export abstract class PromiseUtils {
    * @param operation a function that outputs a Promise result, normally the operation does not use its arguments
    * @param backoff Array of retry backoff periods (unit: milliseconds) or function for calculating them.
    *                If retry is desired, before making next call to the operation the desired backoff period would be waited.
-   *                If the array runs out of elements or the function returns `undefined`, there would be no further call to the operation.
+   *                If the array runs out of elements or the function returns `undefined` or either the array or the function returns a negative number,
+   *                there would be no further call to the operation.
    *                The `attempt` argument passed into backoff function starts from 2 because only retries need to backoff,
    *                so the first retry is the second attempt.
    * @param shouldRetry Predicate function for deciding whether another call to the operation should happen.
@@ -89,12 +93,10 @@ export abstract class PromiseUtils {
       (previousOutcome: Partial<OperationOutcome>) => operation(attempt, previousOutcome.result, previousOutcome.error).then(result => ({ result })).catch(error => ({ error })),
       outcome => {
         if (!shouldRetry(outcome.error, outcome.result, attempt)) {
-          // eslint-disable-next-line unicorn/no-null
           return null;
         }
         const backoffMs = Array.isArray(backoff) ? backoff[attempt - 1] : backoff(attempt, outcome.result, outcome.error);
-        if (backoffMs === undefined) {
-          // eslint-disable-next-line unicorn/no-null
+        if (backoffMs == null || backoffMs < 0) {
           return null;
         }
         attempt++;
