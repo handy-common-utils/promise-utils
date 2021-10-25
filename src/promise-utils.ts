@@ -235,7 +235,7 @@ export abstract class PromiseUtils {
    * @param operation   function for doing the computation and returning a Promise
    * @returns the result of the operation function
    */
-  static async synchronized<T>(lock: any, operation: (previousState: PromiseState | undefined, previousSettledState: PromiseState | undefined, previousResult: any) => Promise<T>): Promise<T> {
+  static async synchronized<T>(lock: unknown, operation: (previousState: PromiseState | undefined, previousSettledState: PromiseState | undefined, previousResult: any) => Promise<T>): Promise<T> {
     let resultPromise: Promise<T>;
     const previousResultPromise = PromiseUtils.synchronizationLocks.get(lock);
     let previousState: PromiseState | undefined;
