@@ -163,7 +163,7 @@ describe('PromiseUtils', () => {
     });
   });
   describe('inParallel(...)', () => {
-    for (const p of [-3, 0, 1, 2, 3, 5, 6, 10, 30]) {
+    for (const p of [-10, -10, -10, -10, -3, 0, 1, 2, 3, 5, 6, 10, 30]) {
       it(`should run operations in parallel when parallelism=${p}`, function () {
         this.timeout(10000);
         const DELAY = 50;
@@ -178,7 +178,9 @@ describe('PromiseUtils', () => {
         return promise.then(() => {
           const duration = endTime - startTime;
           const expectedDuration = (DELAY + 3) * NUM / (p < 1 ? 1 : p);   // +3ms overhead per operation
-          expect(Math.abs(duration - expectedDuration)).lt(ALLOWED_DEVIATION * 2);
+          if (p > -10) {  // those p <= -10 are warm up runs
+            expect(Math.abs(duration - expectedDuration)).lt(ALLOWED_DEVIATION * 2);
+          }
         });
       });
     }
