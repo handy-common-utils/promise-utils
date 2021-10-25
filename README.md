@@ -1,6 +1,7 @@
 # @handy-common-utils/promise-utils
 
 Promise related utilities that has no external dependency and 100% test coverage.
+Functions provided are `repeat`, `withRetry`, `inParallel`, `delayedResolve`, `delayedReject`, `timoutResolve`, `timeoutReject`, `promiseState`, `synchronized`, etc.
 
 [![Version](https://img.shields.io/npm/v/@handy-common-utils/promise-utils.svg)](https://npmjs.org/package/@handy-common-utils/promise-utils)
 [![Downloads/week](https://img.shields.io/npm/dw/@handy-common-utils/promise-utils.svg)](https://npmjs.org/package/@handy-common-utils/promise-utils)
