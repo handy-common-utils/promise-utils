@@ -45,147 +45,338 @@ import { repeat } from '@handy-common-utils/promise-utils';
 <!-- API start -->
 <a name="readmemd"></a>
 
-**[@handy-common-utils/promise-utils](#readmemd)**
-
-> Globals
+@handy-common-utils/promise-utils
 
 ## @handy-common-utils/promise-utils
 
-### Index
+### Table of contents
 
 #### Enumerations
 
-* [PromiseState](#enumspromisestatemd)
+- [PromiseState](#enumspromisestatemd)
 
 #### Classes
 
-* [PromiseUtils](#classespromiseutilsmd)
-
-#### Type aliases
-
-* [InParrellelResult](#inparrellelresult)
+- [PromiseUtils](#classespromiseutilsmd)
 
 #### Variables
 
-* [delayedReject](#delayedreject)
-* [delayedResolve](#delayedresolve)
-* [inParallel](#inparallel)
-* [promiseState](#promisestate)
-* [repeat](#repeat)
-* [synchronized](#synchronized)
-* [timeoutReject](#timeoutreject)
-* [timeoutResolve](#timeoutresolve)
+- [FIBONACCI\_SEQUENCE](#fibonacci_sequence)
 
-### Type aliases
+#### Functions
 
-#### InParrellelResult
-
-Ƭ  **InParrellelResult**\<T>: T *extends* void ? void : Array\<T>
-
-##### Type parameters:
-
-Name |
------- |
-`T` |
+- [delayedReject](#delayedreject)
+- [delayedResolve](#delayedresolve)
+- [inParallel](#inparallel)
+- [promiseState](#promisestate)
+- [repeat](#repeat)
+- [synchronised](#synchronised)
+- [synchronized](#synchronized)
+- [timeoutReject](#timeoutreject)
+- [timeoutResolve](#timeoutresolve)
+- [withRetry](#withretry)
 
 ### Variables
 
+#### FIBONACCI\_SEQUENCE
+
+• `Const` **FIBONACCI\_SEQUENCE**: `number`[]
+
+### Functions
+
 #### delayedReject
 
-• `Const` **delayedReject**: [delayedReject](#delayedreject) = PromiseUtils.delayedReject
+▸ `Const` **delayedReject**<`T`, `R`\>(`ms`, `reason`): `Promise`<`T`\>
+
+##### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `T` | `never` |
+| `R` | `any` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `ms` | `number` |
+| `reason` | `R` \| () => `R` |
+
+##### Returns
+
+`Promise`<`T`\>
 
 ___
 
 #### delayedResolve
 
-• `Const` **delayedResolve**: [delayedResolve](#delayedresolve) = PromiseUtils.delayedResolve
+▸ `Const` **delayedResolve**<`T`\>(`ms`, `result?`): `Promise`<`T`\>
+
+##### Type parameters
+
+| Name |
+| :------ |
+| `T` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `ms` | `number` |
+| `result?` | `T` \| `PromiseLike`<`T`\> \| () => `T` \| `PromiseLike`<`T`\> |
+
+##### Returns
+
+`Promise`<`T`\>
 
 ___
 
 #### inParallel
 
-• `Const` **inParallel**: [inParallel](#inparallel) = PromiseUtils.inParallel
+▸ `Const` **inParallel**<`Data`, `Result`, `TError`\>(`parallelism`, `jobs`, `operation`): `Promise`<(`Result` \| `TError`)[]\>
+
+##### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `Data` | `Data` |
+| `Result` | `Result` |
+| `TError` | `Result` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `parallelism` | `number` |
+| `jobs` | `Iterable`<`Data`\> |
+| `operation` | (`job`: `Data`, `index`: `number`) => `Promise`<`Result`\> |
+
+##### Returns
+
+`Promise`<(`Result` \| `TError`)[]\>
 
 ___
 
 #### promiseState
 
-• `Const` **promiseState**: [promiseState](#promisestate) = PromiseUtils.promiseState
+▸ `Const` **promiseState**(`p`): `Promise`<[`PromiseState`](#enumspromisestatemd)\>
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `p` | `Promise`<`any`\> |
+
+##### Returns
+
+`Promise`<[`PromiseState`](#enumspromisestatemd)\>
 
 ___
 
 #### repeat
 
-• `Const` **repeat**: [repeat](#repeat) = PromiseUtils.repeat
+▸ `Const` **repeat**<`Result`, `Param`, `Collection`\>(`operation`, `nextParameter`, `collect`, `initialCollection`, `initialParameter?`): `Promise`<`Collection`\>
+
+##### Type parameters
+
+| Name |
+| :------ |
+| `Result` |
+| `Param` |
+| `Collection` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `operation` | (`parameter`: `Partial`<`Param`\>) => `Promise`<`Result`\> |
+| `nextParameter` | (`response`: `Result`) => ``null`` \| `Partial`<`Param`\> \| `Promise`<`Partial`<`Param`\>\> |
+| `collect` | (`collection`: `Collection`, `result`: `Result`) => `Collection` |
+| `initialCollection` | `Collection` |
+| `initialParameter` | `Partial`<`Param`\> |
+
+##### Returns
+
+`Promise`<`Collection`\>
+
+___
+
+#### synchronised
+
+▸ `Const` **synchronised**<`T`\>(`lock`, `operation`): `Promise`<`T`\>
+
+##### Type parameters
+
+| Name |
+| :------ |
+| `T` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `lock` | `unknown` |
+| `operation` | (`previousState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousSettledState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousResult`: `any`) => `Promise`<`T`\> |
+
+##### Returns
+
+`Promise`<`T`\>
 
 ___
 
 #### synchronized
 
-• `Const` **synchronized**: [synchronized](#synchronized) = PromiseUtils.synchronized
+▸ `Const` **synchronized**<`T`\>(`lock`, `operation`): `Promise`<`T`\>
+
+##### Type parameters
+
+| Name |
+| :------ |
+| `T` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `lock` | `unknown` |
+| `operation` | (`previousState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousSettledState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousResult`: `any`) => `Promise`<`T`\> |
+
+##### Returns
+
+`Promise`<`T`\>
 
 ___
 
 #### timeoutReject
 
-• `Const` **timeoutReject**: [timeoutReject](#timeoutreject) = PromiseUtils.timeoutReject
+▸ `Const` **timeoutReject**<`T`, `R`\>(`operation`, `ms`, `rejectReason`): `Promise`<`T`\>
+
+##### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `T` | `never` |
+| `R` | `any` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `operation` | `Promise`<`T`\> |
+| `ms` | `number` |
+| `rejectReason` | `R` \| () => `R` |
+
+##### Returns
+
+`Promise`<`T`\>
 
 ___
 
 #### timeoutResolve
 
-• `Const` **timeoutResolve**: [timeoutResolve](#timeoutresolve) = PromiseUtils.timeoutResolve
+▸ `Const` **timeoutResolve**<`T`\>(`operation`, `ms`, `result?`): `Promise`<`T`\>
+
+##### Type parameters
+
+| Name |
+| :------ |
+| `T` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `operation` | `Promise`<`T`\> |
+| `ms` | `number` |
+| `result?` | `T` \| `PromiseLike`<`T`\> \| () => `T` \| `PromiseLike`<`T`\> |
+
+##### Returns
+
+`Promise`<`T`\>
+
+___
+
+#### withRetry
+
+▸ `Const` **withRetry**<`Result`, `TError`\>(`operation`, `backoff`, `shouldRetry?`): `Promise`<`Result`\>
+
+##### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `Result` | `Result` |
+| `TError` | `any` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `operation` | (`attempt`: `number`, `previousResult`: `undefined` \| `Result`, `previousError`: `undefined` \| `TError`) => `Promise`<`Result`\> |
+| `backoff` | `number`[] \| (`attempt`: `number`, `previousResult`: `undefined` \| `Result`, `previousError`: `undefined` \| `TError`) => `undefined` \| `number` |
+| `shouldRetry` | (`previousError`: `undefined` \| `TError`, `previousResult`: `undefined` \| `Result`, `attempt`: `number`) => `boolean` |
+
+##### Returns
+
+`Promise`<`Result`\>
 
 ## Classes
 
 
 <a name="classespromiseutilsmd"></a>
 
-**[@handy-common-utils/promise-utils](#readmemd)**
-
-> [Globals](#readmemd) / PromiseUtils
+[@handy-common-utils/promise-utils](#readmemd) / PromiseUtils
 
 ### Class: PromiseUtils
 
-#### Hierarchy
+#### Table of contents
 
-* **PromiseUtils**
+##### Constructors
 
-#### Index
+- [constructor](#constructor)
 
 ##### Methods
 
-* [delayedReject](#delayedreject)
-* [delayedResolve](#delayedresolve)
-* [inParallel](#inparallel)
-* [promiseState](#promisestate)
-* [repeat](#repeat)
-* [synchronized](#synchronized)
-* [timeoutReject](#timeoutreject)
-* [timeoutResolve](#timeoutresolve)
+- [delayedReject](#delayedreject)
+- [delayedResolve](#delayedresolve)
+- [inParallel](#inparallel)
+- [promiseState](#promisestate)
+- [repeat](#repeat)
+- [synchronized](#synchronized)
+- [timeoutReject](#timeoutreject)
+- [timeoutResolve](#timeoutresolve)
+- [withRetry](#withretry)
+
+#### Constructors
+
+##### constructor
+
+• **new PromiseUtils**()
 
 #### Methods
 
 ##### delayedReject
 
-▸ `Static` **delayedReject**\<T>(`ms`: number, `reason`: any): Promise\<T>
+▸ `Static` **delayedReject**<`T`, `R`\>(`ms`, `reason`): `Promise`<`T`\>
 
 Create a Promise that rejects after number of milliseconds specified
 
-###### Type parameters:
+###### Type parameters
 
-Name | Default |
------- | ------ |
-`T` | never |
+| Name | Type |
+| :------ | :------ |
+| `T` | `never` |
+| `R` | `any` |
 
-###### Parameters:
+###### Parameters
 
-Name | Type | Description |
------- | ------ | ------ |
-`ms` | number | number of milliseconds after which the created Promise would reject |
-`reason` | any | the reason of the rejection for the Promise |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `ms` | `number` | number of milliseconds after which the created Promise would reject |
+| `reason` | `R` \| () => `R` | the reason of the rejection for the Promise, or a function that supplies the reason. |
 
-**Returns:** Promise\<T>
+###### Returns
+
+`Promise`<`T`\>
 
 the new Promise created
 
@@ -193,24 +384,26 @@ ___
 
 ##### delayedResolve
 
-▸ `Static` **delayedResolve**\<T>(`ms`: number, `result?`: T \| PromiseLike\<T> \| undefined): Promise\<T>
+▸ `Static` **delayedResolve**<`T`\>(`ms`, `result?`): `Promise`<`T`\>
 
 Create a Promise that resolves after number of milliseconds specified
 
-###### Type parameters:
+###### Type parameters
 
-Name |
------- |
-`T` |
+| Name |
+| :------ |
+| `T` |
 
-###### Parameters:
+###### Parameters
 
-Name | Type | Description |
------- | ------ | ------ |
-`ms` | number | number of milliseconds after which the created Promise would resolve |
-`result?` | T \| PromiseLike\<T> \| undefined | the result to be resolved for the Promise |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `ms` | `number` | number of milliseconds after which the created Promise would resolve |
+| `result?` | `T` \| `PromiseLike`<`T`\> \| () => `T` \| `PromiseLike`<`T`\> | the result to be resolved for the Promise, or a function that supplies the reuslt. |
 
-**Returns:** Promise\<T>
+###### Returns
+
+`Promise`<`T`\>
 
 the new Promise created
 
@@ -218,15 +411,15 @@ ___
 
 ##### inParallel
 
-▸ `Static` **inParallel**\<Data, Result>(`parallelism`: number, `jobs`: Iterable\<Data>, `operation`: (job: Data, index: number) => Promise\<Result>): Promise\<[InParrellelResult](#inparrellelresult)\<Result>>
+▸ `Static` **inParallel**<`Data`, `Result`, `TError`\>(`parallelism`, `jobs`, `operation`): `Promise`<(`Result` \| `TError`)[]\>
 
 Run multiple jobs/operations in parallel.
 
 **`example`**
 ```javascript
- 
+
 const topicArns = topics.map(topic => topic.TopicArn!);
-await Utils.inParallel(5, topicArns, async topicArn => {
+await PromiseUtils.inParallel(5, topicArns, async topicArn => {
   const topicAttributes = (await sns.getTopicAttributes({ TopicArn: topicArn }).promise()).Attributes!;
   const topicDetails = { ...topicAttributes, subscriptions: [] } as any;
   if (this.shouldInclude(topicArn)) {
@@ -235,42 +428,48 @@ await Utils.inParallel(5, topicArns, async topicArn => {
 });
 
 ```
-###### Type parameters:
+###### Type parameters
 
-Name | Description |
------- | ------ |
-`Data` | Type of the job data, usually it would be an Array |
-`Result` | Type of the return value of the operation function  |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `Data` | `Data` | Type of the job data, usually it would be an Array |
+| `Result` | `Result` | Type of the return value of the operation function |
+| `TError` | `Result` | - |
 
-###### Parameters:
+###### Parameters
 
-Name | Type | Description |
------- | ------ | ------ |
-`parallelism` | number | how many jobs/operations can be running at the same time |
-`jobs` | Iterable\<Data> | job data which will be the input to operation function.                    This function is safe when there are infinite unknown number of elements in the job data. |
-`operation` | (job: Data, index: number) => Promise\<Result> | the function that turns job data into result asynchronously |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `parallelism` | `number` | how many jobs/operations can be running at the same time |
+| `jobs` | `Iterable`<`Data`\> | job data which will be the input to operation function.                    This function is safe when there are infinite unknown number of elements in the job data. |
+| `operation` | (`job`: `Data`, `index`: `number`) => `Promise`<`Result`\> | the function that turns job data into result asynchronously |
 
-**Returns:** Promise\<[InParrellelResult](#inparrellelresult)\<Result>>
+###### Returns
+
+`Promise`<(`Result` \| `TError`)[]\>
 
 Promise of void if the operation function does not return a value,
-         or promise of an arry containing results returned from the operation function.
+         or promise of an array containing results returned from the operation function.
+         In the array containing results, each element is either the fulfilled result, or the rejected error/reason.
 
 ___
 
 ##### promiseState
 
-▸ `Static` **promiseState**(`p`: Promise\<any>): Promise\<[PromiseState](#enumspromisestatemd)>
+▸ `Static` **promiseState**(`p`): `Promise`<[`PromiseState`](#enumspromisestatemd)\>
 
 Get the state of the Promise.
 Please note that the returned value is a Promise, although it resolves immediately.
 
-###### Parameters:
+###### Parameters
 
-Name | Type | Description |
------- | ------ | ------ |
-`p` | Promise\<any> | the Promise for which we would like to know its state |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `p` | `Promise`<`any`\> | the Promise for which we would like to know its state |
 
-**Returns:** Promise\<[PromiseState](#enumspromisestatemd)>
+###### Returns
+
+`Promise`<[`PromiseState`](#enumspromisestatemd)\>
 
 A Promise that resolves immediately cotaining the state of the input Promise
 
@@ -278,15 +477,15 @@ ___
 
 ##### repeat
 
-▸ `Static` **repeat**\<Result, Param, Collection>(`operation`: (parameter: Partial\<Param>) => Promise\<Result>, `nextParameter`: (response: Result) => Partial\<Param> \| null, `collect`: (collection: Collection, result: Result) => Collection, `initialCollection`: Collection, `initialParameter?`: Partial\<Param>): Promise\<Collection>
+▸ `Static` **repeat**<`Result`, `Param`, `Collection`\>(`operation`, `nextParameter`, `collect`, `initialCollection`, `initialParameter?`): `Promise`<`Collection`\>
 
 Do an operation repeatedly and collect all the results.
 This function is useful for client side pagination.
 
 **`example`**
 ```javascript
- 
-const domainNameObjects = await Utils.repeat(
+
+const domainNameObjects = await PromiseUtils.repeat(
   pagingParam => apig.getDomainNames({limit: 500, ...pagingParam}).promise(),
   esponse => response.position? {position: response.position} : null,
   (collection, response) => collection.concat(response.items!),
@@ -294,25 +493,27 @@ const domainNameObjects = await Utils.repeat(
 );
 
 ```
-###### Type parameters:
+###### Type parameters
 
-Name | Description |
------- | ------ |
-`Result` | type of the operation result |
-`Param` | type of the input to the operation, normally the input is a paging parameter |
-`Collection` | type of the returned value of this function  |
+| Name | Description |
+| :------ | :------ |
+| `Result` | type of the operation result |
+| `Param` | type of the input to the operation, normally the input is a paging parameter |
+| `Collection` | type of the returned value of this function |
 
-###### Parameters:
+###### Parameters
 
-Name | Type | Default value | Description |
------- | ------ | ------ | ------ |
-`operation` | (parameter: Partial\<Param>) => Promise\<Result> | - | a function that takes paging parameter as input and outputs a result, normally the operation supports paging |
-`nextParameter` | (response: Result) => Partial\<Param> \| null | - | The function for calculating next parameter from the operation result.                      Normally the parameter controls paging,                      This function should return null when next invocation of the operation function is not desired. |
-`collect` | (collection: Collection, result: Result) => Collection | - | the function for merging operation result into the collection |
-`initialCollection` | Collection | - | initial collection which would be the first argument passed into the first invocation of the collect function |
-`initialParameter` | Partial\<Param> | {} | the parameter for the first operation |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `operation` | (`parameter`: `Partial`<`Param`\>) => `Promise`<`Result`\> | a function that takes paging parameter as input and outputs a result, normally the operation supports paging |
+| `nextParameter` | (`response`: `Result`) => ``null`` \| `Partial`<`Param`\> \| `Promise`<`Partial`<`Param`\>\> | The function for calculating next parameter from the operation result.                      Normally the parameter controls paging,                      This function should return null when next invocation of the operation function is not desired.                      If next invocation is desired, the return value of this function can be a Promise or not a Promise. |
+| `collect` | (`collection`: `Collection`, `result`: `Result`) => `Collection` | the function for merging operation result into the collection |
+| `initialCollection` | `Collection` | initial collection which would be the first argument passed into the first invocation of the collect function |
+| `initialParameter` | `Partial`<`Param`\> | the parameter for the first operation |
 
-**Returns:** Promise\<Collection>
+###### Returns
+
+`Promise`<`Collection`\>
 
 Promise of collection of all the results returned by the operation function
 
@@ -320,27 +521,30 @@ ___
 
 ##### synchronized
 
-▸ `Static` **synchronized**\<T>(`lock`: any, `operation`: (previousState: [PromiseState](#enumspromisestatemd) \| undefined, previousSettledState: [PromiseState](#enumspromisestatemd) \| undefined, previousResult: any) => Promise\<T>): Promise\<T>
+▸ `Static` **synchronized**<`T`\>(`lock`, `operation`): `Promise`<`T`\>
 
 Equivalent of `synchronized` in Java.
 In any situation there's no concurrent execution of any operation function associated with the same lock.
-The operation function has access to the state (when `synchronized` is called), settledState (when the operation function is called), and result of the previous operation.
+The operation function has access to the state (when `synchronized` is called), settledState (when the operation function is called),
+and result (could be the fulfilled result or the rejected reason) of the previous operation.
 In case there is no previous invocation, state, settledState and result would all be undefined.
 
-###### Type parameters:
+###### Type parameters
 
-Name |
------- |
-`T` |
+| Name |
+| :------ |
+| `T` |
 
-###### Parameters:
+###### Parameters
 
-Name | Type | Description |
------- | ------ | ------ |
-`lock` | any | the object (could be a string, a number, or `this` in a class) that is used to apply the lock |
-`operation` | (previousState: [PromiseState](#enumspromisestatemd) \| undefined, previousSettledState: [PromiseState](#enumspromisestatemd) \| undefined, previousResult: any) => Promise\<T> | function for doing the computation and returning a Promise |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `lock` | `unknown` | the object (could be a string, a number, or `this` in a class) that is used to apply the lock |
+| `operation` | (`previousState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousSettledState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousResult`: `any`) => `Promise`<`T`\> | function for doing the computation and returning a Promise |
 
-**Returns:** Promise\<T>
+###### Returns
+
+`Promise`<`T`\>
 
 the result of the operation function
 
@@ -348,26 +552,29 @@ ___
 
 ##### timeoutReject
 
-▸ `Static` **timeoutReject**\<T>(`operation`: Promise\<T>, `ms`: number, `rejectReason`: any): Promise\<T>
+▸ `Static` **timeoutReject**<`T`, `R`\>(`operation`, `ms`, `rejectReason`): `Promise`<`T`\>
 
 Apply timeout to an operation, in case timeout happens, reject with the reason specified.
 If timeout does not happen, the resolved result or rejection reason of the original operation would be returned.
 
-###### Type parameters:
+###### Type parameters
 
-Name |
------- |
-`T` |
+| Name | Type |
+| :------ | :------ |
+| `T` | `never` |
+| `R` | `any` |
 
-###### Parameters:
+###### Parameters
 
-Name | Type | Description |
------- | ------ | ------ |
-`operation` | Promise\<T> | the original operation that timeout would be applied |
-`ms` | number | number of milliseconds for the timeout |
-`rejectReason` | any | the reason of the rejection in case timeout happens |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `operation` | `Promise`<`T`\> | the original operation that timeout would be applied |
+| `ms` | `number` | number of milliseconds for the timeout |
+| `rejectReason` | `R` \| () => `R` | the reason of the rejection in case timeout happens, or a function that supplies the reason. |
 
-**Returns:** Promise\<T>
+###### Returns
+
+`Promise`<`T`\>
 
 the new Promise that rejects with the specified reason in case timeout happens
 
@@ -375,63 +582,98 @@ ___
 
 ##### timeoutResolve
 
-▸ `Static` **timeoutResolve**\<T>(`operation`: Promise\<T>, `ms`: number, `result?`: T \| PromiseLike\<T> \| undefined): Promise\<T>
+▸ `Static` **timeoutResolve**<`T`\>(`operation`, `ms`, `result?`): `Promise`<`T`\>
 
 Apply timeout to an operation, in case timeout happens, resolve to the result specified.
 If timeout does not happen, the resolved result or rejection reason of the original operation would be returned.
 
-###### Type parameters:
+###### Type parameters
 
-Name |
------- |
-`T` |
+| Name |
+| :------ |
+| `T` |
 
-###### Parameters:
+###### Parameters
 
-Name | Type | Description |
------- | ------ | ------ |
-`operation` | Promise\<T> | the original operation that timeout would be applied |
-`ms` | number | number of milliseconds for the timeout |
-`result?` | T \| PromiseLike\<T> \| undefined | the result to be resolved in case timeout happens |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `operation` | `Promise`<`T`\> | the original operation that timeout would be applied |
+| `ms` | `number` | number of milliseconds for the timeout |
+| `result?` | `T` \| `PromiseLike`<`T`\> \| () => `T` \| `PromiseLike`<`T`\> | the result to be resolved in case timeout happens, or a function that supplies the reuslt. |
 
-**Returns:** Promise\<T>
+###### Returns
+
+`Promise`<`T`\>
 
 the new Promise that resolves to the specified result in case timeout happens
+
+___
+
+##### withRetry
+
+▸ `Static` **withRetry**<`Result`, `TError`\>(`operation`, `backoff`, `shouldRetry?`): `Promise`<`Result`\>
+
+Do an operation repeatedly until a criteria is met.
+
+**`example`**
+```javascript
+
+const result = await PromiseUtils.withRetry(() => doSomething(), [100, 200, 300, 500, 800, 1000]);
+
+```
+###### Type parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `Result` | `Result` | type of the operation result |
+| `TError` | `any` | type of the possible error that could be generated by the operation |
+
+###### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `operation` | (`attempt`: `number`, `previousResult`: `undefined` \| `Result`, `previousError`: `undefined` \| `TError`) => `Promise`<`Result`\> | a function that outputs a Promise result, normally the operation does not use its arguments |
+| `backoff` | `number`[] \| (`attempt`: `number`, `previousResult`: `undefined` \| `Result`, `previousError`: `undefined` \| `TError`) => `undefined` \| `number` | Array of retry backoff periods (unit: milliseconds) or function for calculating them.                If retry is desired, before making next call to the operation the desired backoff period would be waited.                If the array runs out of elements or the function returns `undefined` or either the array or the function returns a negative number,                there would be no further call to the operation.                The `attempt` argument passed into backoff function starts from 2 because only retries need to backoff,                so the first retry is the second attempt. |
+| `shouldRetry` | (`previousError`: `undefined` \| `TError`, `previousResult`: `undefined` \| `Result`, `attempt`: `number`) => `boolean` | Predicate function for deciding whether another call to the operation should happen.                    If this argument is not defined, retry would happen whenever the operation rejects with an error.                    `shouldRetry` would be evaluated before `backoff`.                    The `attempt` argument passed into shouldRetry function starts from 1. |
+
+###### Returns
+
+`Promise`<`Result`\>
+
+Promise of the operation result potentially with retries already applied
 
 ## Enums
 
 
 <a name="enumspromisestatemd"></a>
 
-**[@handy-common-utils/promise-utils](#readmemd)**
-
-> [Globals](#readmemd) / PromiseState
+[@handy-common-utils/promise-utils](#readmemd) / PromiseState
 
 ### Enumeration: PromiseState
 
-#### Index
+#### Table of contents
 
 ##### Enumeration members
 
-* [Fulfilled](#fulfilled)
-* [Pending](#pending)
-* [Rejected](#rejected)
+- [Fulfilled](#fulfilled)
+- [Pending](#pending)
+- [Rejected](#rejected)
 
 #### Enumeration members
 
 ##### Fulfilled
 
-•  **Fulfilled**:  = "Fulfilled"
+• **Fulfilled** = `"Fulfilled"`
 
 ___
 
 ##### Pending
 
-•  **Pending**:  = "Pending"
+• **Pending** = `"Pending"`
 
 ___
 
 ##### Rejected
 
-•  **Rejected**:  = "Rejected"
+• **Rejected** = `"Rejected"`
 <!-- API end -->
