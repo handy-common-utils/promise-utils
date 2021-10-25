@@ -183,6 +183,7 @@ describe('PromiseUtils', () => {
           if (p <= -10) {  // those p <= -10 are warm up and calibration runs
             OVERHEAD += (duration - expectedDuration) * 0.9 / NUM;  // calibration
           } else {
+            expect(OVERHEAD).to.lt(ALLOWED_DEVIATION);  // overhead should be small
             expect(Math.abs(duration - expectedDuration)).lt(ALLOWED_DEVIATION);
           }
         });
