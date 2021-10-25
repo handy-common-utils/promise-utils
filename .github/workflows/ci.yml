@@ -31,6 +31,7 @@ jobs:
       with:
         directory: ./coverage
         flags: unittests # optional
+        name: Result with Node version ${{ matrix.node-version }}
         fail_ci_if_error: true # optional (default = false)
         verbose: true # optional (default = false)
 
