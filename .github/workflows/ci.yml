@@ -27,11 +27,12 @@ jobs:
           package-lock.json
     - run: npm ci
     - run: npm test
-    - uses: codecov/codecov-action@v2
+    - name: Upload test coverage report
+      uses: codecov/codecov-action@v2
       with:
         directory: ./coverage
         flags: unittests # optional
         name: Result with Node version ${{ matrix.node-version }}
         fail_ci_if_error: true # optional (default = false)
-        verbose: true # optional (default = false)
+        verbose: false # optional (default = false)
 
