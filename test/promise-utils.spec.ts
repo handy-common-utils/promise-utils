@@ -163,7 +163,7 @@ describe('PromiseUtils', () => {
     });
   });
   describe('inParallel(...)', () => {
-    let OVERHEAD = 0;
+    let OVERHEAD = 1;
     for (const p of [-10, -10, -10, -10, -3, 0, 1, 2, 3, 5, 6, 10, 30]) {
       it(`should run operations in parallel when parallelism=${p}`, function () {
         this.timeout(10000);
@@ -181,7 +181,7 @@ describe('PromiseUtils', () => {
           const expectedDuration = (DELAY + OVERHEAD) * NUM / (p < 1 ? 1 : p);   // + overhead per operation
           console.log(`+${expectedDuration} -${duration}`);
           if (p <= -10) {  // those p <= -10 are warm up and calibration runs
-            OVERHEAD += (duration - expectedDuration) / NUM;  // calibration
+            OVERHEAD += (duration - expectedDuration) * 0.9 / NUM;  // calibration
           } else {
             expect(Math.abs(duration - expectedDuration)).lt(ALLOWED_DEVIATION);
           }
