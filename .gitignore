@@ -104,3 +104,4 @@ dist
 .tern-port
 API.md
 api-docs
+.DS_Store
