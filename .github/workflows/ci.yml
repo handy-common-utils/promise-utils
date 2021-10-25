@@ -23,8 +23,8 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
         cache-dependency-path: |
-          ${{ matrix.dir }}/package.json
-          ${{ matrix.dir }}/package-lock.json
+          package.json
+          package-lock.json
     - run: npm ci
     - run: npm test
     - uses: codecov/codecov-action@v2
