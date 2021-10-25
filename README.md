@@ -5,7 +5,7 @@ Promise related utilities that has no external dependency and 100% test coverage
 [![Version](https://img.shields.io/npm/v/@handy-common-utils/promise-utils.svg)](https://npmjs.org/package/@handy-common-utils/promise-utils)
 [![Downloads/week](https://img.shields.io/npm/dw/@handy-common-utils/promise-utils.svg)](https://npmjs.org/package/@handy-common-utils/promise-utils)
 [![CI](https://github.com/handy-common-utils/promise-utils/actions/workflows/ci.yml/badge.svg)](https://github.com/handy-common-utils/promise-utils/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/handy-common-utils/promise-utils/branch/master/graph/badge.svg)](https://codecov.io/gh/handy-common-utils/promise-utils)
+[![codecov](https://codecov.io/gh/handy-common-utils/promise-utils/branch/master/graph/badge.svg?token=QBL6AB3CL5)](https://codecov.io/gh/handy-common-utils/promise-utils)
 
 ## How to use
 
