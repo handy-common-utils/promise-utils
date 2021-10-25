@@ -268,4 +268,5 @@ export const delayedReject = PromiseUtils.delayedReject;
 export const timeoutResolve = PromiseUtils.timeoutResolve;
 export const timeoutReject = PromiseUtils.timeoutReject;
 export const synchronized = PromiseUtils.synchronized;
+export const synchronised = PromiseUtils.synchronized;
 export const promiseState = PromiseUtils.promiseState;
