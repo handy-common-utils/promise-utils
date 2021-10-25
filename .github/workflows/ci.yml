@@ -28,6 +28,7 @@ jobs:
     - name: Upload test coverage report
       uses: codecov/codecov-action@v2
       with:
+        token: ${{ secrets.CODECOV_TOKEN }}
         directory: ./coverage
         flags: unittests # optional
         name: Result with Node version ${{ matrix.node-version }}
