@@ -178,6 +178,7 @@ describe('PromiseUtils', () => {
         return promise.then(() => {
           const duration = endTime - startTime;
           const expectedDuration = (DELAY + 3) * NUM / (p < 1 ? 1 : p);   // +3ms overhead per operation
+          console.log(`+${expectedDuration} -${duration}`);
           if (p > -10) {  // those p <= -10 are warm up runs
             expect(Math.abs(duration - expectedDuration)).lt(ALLOWED_DEVIATION * 2);
           }
