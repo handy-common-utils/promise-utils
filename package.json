@@ -16,7 +16,7 @@
   "types": "dist/promise-utils.d.ts",
   "bin": {},
   "devDependencies": {
-    "@handy-common-utils/dev-dependencies": "^1.0.21",
+    "@handy-common-utils/dev-dependencies": "^1.0.22",
     "@types/chai-as-promised": "^7.1.3",
     "chai-as-promised": "^7.1.1",
     "es-check": "^5.2.3"
