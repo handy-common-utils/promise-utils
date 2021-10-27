@@ -190,10 +190,12 @@ export abstract class PromiseUtils {
   }
 
   /**
-   * Apply timeout to an operation, in case timeout happens, resolve to the result specified.
-   * If timeout does not happen, the resolved result or rejection reason of the original operation would be returned.
-   * If timeout does not happen and result is a function, the function won't be called.
-   * @param operation the original operation that timeout would be applied
+   * Apply timeout to a Promise. In case timeout happens, resolve to the result specified.
+   * If timeout does not happen, the resolved result or rejection reason of the original Promise would be the outcome of the Promise returned from this function.
+   * If timeout does not happen and the 'result' parameter is a function, the function won't be called.
+   * The 'operation' parameter's rejection would not be handled by this function, you may want to handle it outside of this function,
+   * just for avoiding warnings like "(node:4330) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously".
+   * @param operation the original Promise for which timeout would be applied
    * @param ms number of milliseconds for the timeout
    * @param result the result to be resolved in case timeout happens, or a function that supplies the reuslt.
    * @return the new Promise that resolves to the specified result in case timeout happens
@@ -212,10 +214,12 @@ export abstract class PromiseUtils {
   }
 
   /**
-   * Apply timeout to an operation, in case timeout happens, reject with the reason specified.
-   * If timeout does not happen, the resolved result or rejection reason of the original operation would be returned.
-   * If timeout does not happen and rejectReason is a function, the function won't be called.
-   * @param operation the original operation that timeout would be applied
+   * Apply timeout to a Promise. In case timeout happens, reject with the reason specified.
+   * If timeout does not happen, the resolved result or rejection reason of the original Promise would be the outcome of the Promise returned from this function.
+   * If timeout does not happen and the 'rejectReason' parameter is a function, the function won't be called.
+   * The 'operation' parameter's rejection would not be handled by this function, you may want to handle it outside of this function,
+   * just for avoiding warnings like "(node:4330) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously".
+   * @param operation the original Promise for which timeout would be applied
    * @param ms number of milliseconds for the timeout
    * @param rejectReason the reason of the rejection in case timeout happens, or a function that supplies the reason.
    * @return the new Promise that rejects with the specified reason in case timeout happens
