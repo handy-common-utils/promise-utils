@@ -176,39 +176,61 @@ export abstract class PromiseUtils {
   }
 
   /**
-   * Create a Promise that rejects after number of milliseconds specified
+   * Create a Promise that rejects after number of milliseconds specified.
    * @param ms number of milliseconds after which the created Promise would reject
    * @param reason the reason of the rejection for the Promise, or a function that supplies the reason.
+   * If the reason ends up to be a rejected Promise, then the outcome (could be fulfilled or rejected) of it will be the reject reason of the Promise returned.
    * @returns the new Promise created
    */
-  static delayedReject<T = never, R = any>(ms: number, reason: R | (() => R)): Promise<T> {
-    return new Promise((_resolve, reject) => setTimeout(() => reject(
-      typeof reason === 'function' ? (reason as (() => R))() : reason as R,
-    ), ms));
+  static delayedReject<T = never, R = any>(ms: number, reason: R | PromiseLike<R> | (() => R|PromiseLike<R>)): Promise<T> {
+    return new Promise((_resolve, reject) => setTimeout(() => {
+      const r = typeof reason === 'function' ? (reason as (() => R|PromiseLike<R>))() : reason as R|PromiseLike<R>;
+      Promise.resolve(r).catch(error => error).then(r => reject(r));
+    }, ms));
   }
 
   /**
    * Apply timeout to an operation, in case timeout happens, resolve to the result specified.
    * If timeout does not happen, the resolved result or rejection reason of the original operation would be returned.
+   * If timeout does not happen and result is a function, the function won't be called.
    * @param operation the original operation that timeout would be applied
    * @param ms number of milliseconds for the timeout
    * @param result the result to be resolved in case timeout happens, or a function that supplies the reuslt.
    * @return the new Promise that resolves to the specified result in case timeout happens
    */
   static timeoutResolve<T>(operation: Promise<T>, ms: number, result?: T | PromiseLike<T> | (() => (T | PromiseLike<T>)) | undefined): Promise<T> {
-    return Promise.race([operation, PromiseUtils.delayedResolve(ms, result)]);
+    return Promise.race([
+      operation,
+      PromiseUtils.delayedResolve(
+        ms,
+        () => PromiseUtils.promiseState(operation)
+                .then(state => state === PromiseState.Pending ?
+                  (typeof result === 'function' ? (result as () => T|PromiseLike<T>|undefined)() : result) :
+                  {} as any), // this object would not be used because the operation should have already resolved
+      ),
+    ]);
   }
 
   /**
    * Apply timeout to an operation, in case timeout happens, reject with the reason specified.
    * If timeout does not happen, the resolved result or rejection reason of the original operation would be returned.
+   * If timeout does not happen and rejectReason is a function, the function won't be called.
    * @param operation the original operation that timeout would be applied
    * @param ms number of milliseconds for the timeout
    * @param rejectReason the reason of the rejection in case timeout happens, or a function that supplies the reason.
    * @return the new Promise that rejects with the specified reason in case timeout happens
    */
-  static timeoutReject<T = never, R = any>(operation: Promise<T>, ms: number, rejectReason: R | (() => R)): Promise<T> {
-    return Promise.race([operation, PromiseUtils.delayedReject(ms, rejectReason)]);
+  static timeoutReject<T = never, R = any>(operation: Promise<T>, ms: number, rejectReason: R | PromiseLike<R> | (() => R|PromiseLike<R>)): Promise<T> {
+    return Promise.race([
+      operation,
+      PromiseUtils.delayedReject(
+        ms,
+        () => PromiseUtils.promiseState(operation)
+                .then(state => state === PromiseState.Pending ?
+                  (typeof rejectReason === 'function' ? (rejectReason as () => R|PromiseLike<R>)() : rejectReason) :
+                  {}), // this object would not be used because the operation should have already resolved
+      ),
+    ]);
   }
 
   /**
