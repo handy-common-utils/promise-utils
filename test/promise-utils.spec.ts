@@ -116,14 +116,29 @@ describe('PromiseUtils', () => {
       const delayedResolvePromise = PromiseUtils.delayedResolve(DELAY, PromiseUtils.delayedResolve(DELAY, SUCC_RESULT));
       return expect(delayedResolvePromise).to.eventually.eq(SUCC_RESULT)
               .then(() => {
-                expect(Math.abs(Date.now() - startTime - DELAY)).lt(ALLOWED_DEVIATION); // because the the inner Promise would start immediately
+                expect(Math.abs(Date.now() - startTime - DELAY)).lt(ALLOWED_DEVIATION); // because the inner Promise would start immediately
+              });
+    });
+    it('should resolve a fulfilling promise supplied by a function after specified time', () => {
+      const DELAY = 60;
+      const SUCC_RESULT = 'this is the success message';
+      const startTime = Date.now();
+      const supplier = () => PromiseUtils.delayedResolve(DELAY, SUCC_RESULT);
+      const delayedResolvePromise = PromiseUtils.delayedResolve(DELAY, supplier);
+      return expect(delayedResolvePromise).to.eventually.eq(SUCC_RESULT)
+              .then(() => {
+                expect(Math.abs(Date.now() - startTime - DELAY - DELAY)).lt(ALLOWED_DEVIATION); // because the supplier would create the Promise after DELAY
               });
     });
     it('should resolved a rejected promise after specified time', () => {
       const DELAY = 60;
       const ERROR_MSG = 'this is the error message';
       const startTime = Date.now();
-      const delayedResolvePromise = PromiseUtils.delayedResolve(DELAY, PromiseUtils.delayedReject(DELAY, ERROR_MSG));
+      const theRejectedPromise = PromiseUtils.delayedReject(DELAY / 3, ERROR_MSG);
+      theRejectedPromise.catch(_error => {
+        // do nothing, just for avoiding this: (node:4330) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously
+      });
+      const delayedResolvePromise = PromiseUtils.delayedResolve(DELAY, theRejectedPromise);
       return expect(delayedResolvePromise).to.be.rejectedWith(ERROR_MSG)
               .then(() => {
                 expect(Math.abs(Date.now() - startTime - DELAY)).lt(ALLOWED_DEVIATION);
