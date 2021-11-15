@@ -1,6 +1,6 @@
 {
   "name": "@handy-common-utils/promise-utils",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Promise related utilities",
   "scripts": {
     "pretest": "eslint . --ext .ts",

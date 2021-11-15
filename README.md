@@ -111,6 +111,8 @@ await inParallel(5, topicArns, async topicArn => {
 
 • `Const` **FIBONACCI\_SEQUENCE**: `number`[]
 
+Array of Fibonacci numbers starting from 1 up to 317811.
+
 ### Functions
 
 #### delayedReject
@@ -686,6 +688,8 @@ Promise of the operation result potentially with retries already applied
 [@handy-common-utils/promise-utils](#readmemd) / PromiseState
 
 ### Enumeration: PromiseState
+
+The state of a Promise can only be on of: Pending, Fulfilled, and Rejected.
 
 #### Table of contents
 
