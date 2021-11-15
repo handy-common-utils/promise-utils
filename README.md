@@ -47,8 +47,8 @@ async repeatFetchingItemsByPosition<T>(
 }
 ```
 
-You can either import and use the [class](#classes) as shown above,
-or you can import individual [functions](#variables) directly like below:
+You can either import and use the [PromiseUtils class](#classespromiseutilsmd) as shown above,
+or you can import its re-exported functions directly like below:
 
 ```javascript
 import { withRetry, inParallel } from '@handy-common-utils/promise-utils';
