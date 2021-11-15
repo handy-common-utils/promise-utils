@@ -314,7 +314,7 @@ describe('PromiseUtils', () => {
     it('should work for a simple three "threads" scenario', async () => {
       const lock = 'lock' + Date.now();
       const startTime = Date.now();
-      PromiseUtils.synchronized(lock, (prevState, prevSettledState, prevResult) => {
+      PromiseUtils.synchronised(lock, (prevState, prevSettledState, prevResult) => {
         expect(prevState).to.be.undefined;
         expect(prevSettledState).to.be.undefined;
         expect(prevResult).to.be.undefined;
