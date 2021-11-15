@@ -92,7 +92,27 @@ await inParallel(5, topicArns, async topicArn => {
 
 - [FIBONACCI\_SEQUENCE](#fibonacci_sequence)
 
-### Classes
+#### Functions
+
+- [delayedReject](#delayedreject)
+- [delayedResolve](#delayedresolve)
+- [inParallel](#inparallel)
+- [promiseState](#promisestate)
+- [repeat](#repeat)
+- [synchronised](#synchronised)
+- [synchronized](#synchronized)
+- [timeoutReject](#timeoutreject)
+- [timeoutResolve](#timeoutresolve)
+- [withRetry](#withretry)
+
+### Variables
+
+#### FIBONACCI\_SEQUENCE
+
+• `Const` **FIBONACCI\_SEQUENCE**: `number`[]
+
+Array of Fibonacci numbers starting from 1 up to 317811.
+## Classes
 
 
 <a name="classespromiseutilsmd"></a>
