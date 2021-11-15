@@ -291,15 +291,55 @@ export abstract class PromiseUtils {
     PromiseUtils.synchronizationLocks.set(lock, resultPromise);
     return resultPromise;
   }
+
+  /**
+   * This is just another spelling of {@link PromiseUtils.synchronized}.
+   * @param lock        the object (could be a string, a number, or `this` in a class) that is used to apply the lock
+   * @param operation   function for doing the computation and returning a Promise
+   * @returns the result of the operation function
+   */
+  static async synchronised<T>(lock: unknown, operation: (previousState: PromiseState | undefined, previousSettledState: PromiseState | undefined, previousResult: any) => Promise<T>): Promise<T> {
+    return PromiseUtils.synchronized(lock, operation);
+  }
 }
 
+/**
+ * See {@link PromiseUtils.repeat} for full documentation.
+ */
 export const repeat = PromiseUtils.repeat;
+/**
+ * See {@link PromiseUtils.withRetry} for full documentation.
+ */
 export const withRetry = PromiseUtils.withRetry;
+/**
+ * See {@link PromiseUtils.inParallel} for full documentation.
+ */
 export const inParallel = PromiseUtils.inParallel;
+/**
+ * See {@link PromiseUtils.delayedResolve} for full documentation.
+ */
 export const delayedResolve = PromiseUtils.delayedResolve;
+/**
+ * See {@link PromiseUtils.delayedReject} for full documentation.
+ */
 export const delayedReject = PromiseUtils.delayedReject;
+/**
+ * See {@link PromiseUtils.timeoutResolve} for full documentation.
+ */
 export const timeoutResolve = PromiseUtils.timeoutResolve;
+/**
+ * See {@link PromiseUtils.timeoutReject} for full documentation.
+ */
 export const timeoutReject = PromiseUtils.timeoutReject;
+/**
+ * See {@link PromiseUtils.synchronized} for full documentation.
+ */
 export const synchronized = PromiseUtils.synchronized;
-export const synchronised = PromiseUtils.synchronized;
+/**
+ * See {@link PromiseUtils.synchronised} for full documentation.
+ */
+export const synchronised = PromiseUtils.synchronised;
+/**
+ * See {@link PromiseUtils.promiseState} for full documentation.
+ */
 export const promiseState = PromiseUtils.promiseState;
