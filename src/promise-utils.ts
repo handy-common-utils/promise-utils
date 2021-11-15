@@ -1,6 +1,3 @@
-/* eslint-disable unicorn/no-null */
-/* eslint-disable no-await-in-loop */
-
 /**
  * Array of Fibonacci numbers starting from 1 up to 317811.
  */
@@ -43,7 +40,6 @@ export abstract class PromiseUtils {
    * @returns Promise of collection of all the results returned by the operation function
    *
    */
-  // eslint-disable-next-line max-params
   static async repeat<Result, Param, Collection>(
     operation: (parameter: Partial<Param>) => Promise<Result>,
     nextParameter: (response: Result) => Partial<Param> | Promise<Partial<Param>> | null,
@@ -54,7 +50,6 @@ export abstract class PromiseUtils {
     let collection = initialCollection;
     let param: Partial<Param> = initialParameter;
     do {
-      // eslint-disable-next-line no-await-in-loop
       const result = await operation(param);
       collection = collect(collection, result);
       const paramOrPromise = nextParameter(result);
@@ -177,6 +172,7 @@ export abstract class PromiseUtils {
    * @returns the new Promise created
    */
   static delayedResolve<T>(ms: number, result?: T | PromiseLike<T> | (() => (T | PromiseLike<T>))): Promise<T> {
+    // eslint-disable-next-line no-promise-executor-return
     return new Promise(resolve => setTimeout(() => resolve(
       typeof result === 'function' ? (result as (() => T | PromiseLike<T>))() : result as T | PromiseLike<T>,
     ), ms));
@@ -190,6 +186,7 @@ export abstract class PromiseUtils {
    * @returns the new Promise created
    */
   static delayedReject<T = never, R = any>(ms: number, reason: R | PromiseLike<R> | (() => R|PromiseLike<R>)): Promise<T> {
+    // eslint-disable-next-line no-promise-executor-return
     return new Promise((_resolve, reject) => setTimeout(() => {
       const r = typeof reason === 'function' ? (reason as (() => R|PromiseLike<R>))() : reason as R|PromiseLike<R>;
       Promise.resolve(r).catch(error => error).then(r => reject(r));

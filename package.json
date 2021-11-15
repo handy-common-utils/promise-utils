@@ -6,7 +6,7 @@
     "pretest": "eslint . --ext .ts",
     "test": "nyc mocha",
     "prepare": "shx rm -rf dist && tsc && es-check",
-    "preversion": "generate-api-docs-and-update-readme && git add README.md"
+    "preversion": "generate-api-docs-and-update-readme && replace-in-file README.md '### Functions[\\s\\S]*?## Classes' '## Classes' && git add README.md"
   },
   "files": [
     "package.json",
@@ -16,7 +16,7 @@
   "types": "dist/promise-utils.d.ts",
   "bin": {},
   "devDependencies": {
-    "@handy-common-utils/dev-dependencies": "^1.0.22",
+    "@handy-common-utils/dev-dependencies": "^1.0.31",
     "@types/chai-as-promised": "^7.1.3",
     "chai-as-promised": "^7.1.1",
     "es-check": "^5.2.3"
