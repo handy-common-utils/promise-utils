@@ -21,6 +21,20 @@ Then you can use it in the code:
 ```javascript
 import { PromiseUtils } from '@handy-common-utils/promise-utils';
 
+// delayedResolve(...), delayedReject(...), promiseState(...)
+const p1 = PromiseUtils.delayedResolve(50, 1);
+const p2 = PromiseUtils.delayedReject(50, 2);
+await expect(PromiseUtils.promiseState(p1)).eventually.eq(PromiseState.Pending);
+await expect(PromiseUtils.promiseState(p2)).eventually.eq(PromiseState.Pending);
+await PromiseUtils.delayedResolve(80);
+await expect(PromiseUtils.promiseState(p1)).eventually.eq(PromiseState.Fulfilled);
+await expect(PromiseUtils.promiseState(p2)).eventually.eq(PromiseState.Rejected);
+
+// timeoutReject(...)
+const p = PromiseUtils.timeoutReject(PromiseUtils.delayedReject(80, '1'), 10, '2');
+await expect(p).to.be.rejectedWith('2');
+
+// repeat(...)
 async repeatFetchingItemsByPosition<T>(
   fetchItemsByPosition: (parameter: { position?: string }) => Promise<{ position?: string; items?: Array<T> }>,
 ) {
@@ -37,7 +51,22 @@ You can either import and use the [class](#classes) as shown above,
 or you can import individual [functions](#variables) directly like below:
 
 ```javascript
-import { repeat } from '@handy-common-utils/promise-utils';
+import { withRetry, inParallel } from '@handy-common-utils/promise-utils';
+
+// withRetry(...)
+const result = await PromiseUtils.withRetry(() => doSomething(), [100, 200, 300, 500, 800, 1000]);
+const result2 = await PromiseUtils.withRetry(() => doSomething(), PromiseUtils.FIBONACCI_SEQUENCE, err => err.statusCode === 429);
+
+// inParallel(...)
+const topicArns = topics.map(topic => topic.TopicArn!);
+await inParallel(5, topicArns, async topicArn => {
+  const topicAttributes = (await sns.getTopicAttributes({ TopicArn: topicArn }).promise()).Attributes!;
+  const topicDetails = { ...topicAttributes, subscriptions: [] } as any;
+  if (this.shouldInclude(topicArn)) {
+    inventory.snsTopicsByArn.set(topicArn, topicDetails);
+  }
+});
+
 ```
 
 # API
