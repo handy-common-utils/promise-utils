@@ -119,6 +119,8 @@ Array of Fibonacci numbers starting from 1 up to 317811.
 
 ▸ `Const` **delayedReject**<`T`, `R`\>(`ms`, `reason`): `Promise`<`T`\>
 
+See [PromiseUtils.delayedReject](#delayedreject) for full documentation.
+
 ##### Type parameters
 
 | Name | Type |
@@ -143,6 +145,8 @@ ___
 
 ▸ `Const` **delayedResolve**<`T`\>(`ms`, `result?`): `Promise`<`T`\>
 
+See [PromiseUtils.delayedResolve](#delayedresolve) for full documentation.
+
 ##### Type parameters
 
 | Name |
@@ -165,6 +169,8 @@ ___
 #### inParallel
 
 ▸ `Const` **inParallel**<`Data`, `Result`, `TError`\>(`parallelism`, `jobs`, `operation`): `Promise`<(`Result` \| `TError`)[]\>
+
+See [PromiseUtils.inParallel](#inparallel) for full documentation.
 
 ##### Type parameters
 
@@ -192,6 +198,8 @@ ___
 
 ▸ `Const` **promiseState**(`p`): `Promise`<[`PromiseState`](#enumspromisestatemd)\>
 
+See [PromiseUtils.promiseState](#promisestate) for full documentation.
+
 ##### Parameters
 
 | Name | Type |
@@ -207,6 +215,8 @@ ___
 #### repeat
 
 ▸ `Const` **repeat**<`Result`, `Param`, `Collection`\>(`operation`, `nextParameter`, `collect`, `initialCollection`, `initialParameter?`): `Promise`<`Collection`\>
+
+See [PromiseUtils.repeat](#repeat) for full documentation.
 
 ##### Type parameters
 
@@ -236,6 +246,8 @@ ___
 
 ▸ `Const` **synchronised**<`T`\>(`lock`, `operation`): `Promise`<`T`\>
 
+See [PromiseUtils.synchronised](#synchronised) for full documentation.
+
 ##### Type parameters
 
 | Name |
@@ -259,6 +271,8 @@ ___
 
 ▸ `Const` **synchronized**<`T`\>(`lock`, `operation`): `Promise`<`T`\>
 
+See [PromiseUtils.synchronized](#synchronized) for full documentation.
+
 ##### Type parameters
 
 | Name |
@@ -281,6 +295,8 @@ ___
 #### timeoutReject
 
 ▸ `Const` **timeoutReject**<`T`, `R`\>(`operation`, `ms`, `rejectReason`): `Promise`<`T`\>
+
+See [PromiseUtils.timeoutReject](#timeoutreject) for full documentation.
 
 ##### Type parameters
 
@@ -307,6 +323,8 @@ ___
 
 ▸ `Const` **timeoutResolve**<`T`\>(`operation`, `ms`, `result?`): `Promise`<`T`\>
 
+See [PromiseUtils.timeoutResolve](#timeoutresolve) for full documentation.
+
 ##### Type parameters
 
 | Name |
@@ -330,6 +348,8 @@ ___
 #### withRetry
 
 ▸ `Const` **withRetry**<`Result`, `TError`\>(`operation`, `backoff`, `shouldRetry?`): `Promise`<`Result`\>
+
+See [PromiseUtils.withRetry](#withretry) for full documentation.
 
 ##### Type parameters
 
@@ -372,6 +392,7 @@ ___
 - [inParallel](#inparallel)
 - [promiseState](#promisestate)
 - [repeat](#repeat)
+- [synchronised](#synchronised)
 - [synchronized](#synchronized)
 - [timeoutReject](#timeoutreject)
 - [timeoutResolve](#timeoutresolve)
@@ -547,6 +568,33 @@ const domainNameObjects = await PromiseUtils.repeat(
 `Promise`<`Collection`\>
 
 Promise of collection of all the results returned by the operation function
+
+___
+
+##### synchronised
+
+▸ `Static` **synchronised**<`T`\>(`lock`, `operation`): `Promise`<`T`\>
+
+This is just another spelling of [PromiseUtils.synchronized](#synchronized).
+
+###### Type parameters
+
+| Name |
+| :------ |
+| `T` |
+
+###### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `lock` | `unknown` | the object (could be a string, a number, or `this` in a class) that is used to apply the lock |
+| `operation` | (`previousState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousSettledState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousResult`: `any`) => `Promise`<`T`\> | function for doing the computation and returning a Promise |
+
+###### Returns
+
+`Promise`<`T`\>
+
+the result of the operation function
 
 ___
 
