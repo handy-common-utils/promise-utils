@@ -51,11 +51,13 @@ You can either import and use the [PromiseUtils class](#classespromiseutilsmd) a
 or you can import its re-exported functions directly like below:
 
 ```javascript
-import { withRetry, inParallel } from '@handy-common-utils/promise-utils';
+import { withRetry, inParallel, FIBONACCI_SEQUENCE, EXPONENTIAL_SEQUENCE } from '@handy-common-utils/promise-utils';
 
 // withRetry(...)
-const result = await PromiseUtils.withRetry(() => doSomething(), [100, 200, 300, 500, 800, 1000]);
-const result2 = await PromiseUtils.withRetry(() => doSomething(), PromiseUtils.FIBONACCI_SEQUENCE, err => err.statusCode === 429);
+const result = await withRetry(() => doSomething(), [100, 200, 300, 500, 800, 1000]);
+const result2 = await withRetry(() => doSomething(), Array.from({length: 10}, (_v, i) => Math.min(FIBONACCI_SEQUENCE[i], 10)), err => err.statusCode === 429);
+const result3 = await withRetry(() => doSomething(), attempt => attempt <= 8 ? 1000 * Math.min(EXPONENTIAL_SEQUENCE[attempt - 1], 10) : undefined, err => err.statusCode === 429);
+statusCode === 429);
 
 // inParallel(...)
 const topicArns = topics.map(topic => topic.TopicArn!);
