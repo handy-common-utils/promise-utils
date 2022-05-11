@@ -92,6 +92,7 @@ await inParallel(5, topicArns, async topicArn => {
 
 #### Variables
 
+- [EXPONENTIAL\_SEQUENCE](#exponential_sequence)
 - [FIBONACCI\_SEQUENCE](#fibonacci_sequence)
 
 #### Functions
@@ -109,12 +110,44 @@ await inParallel(5, topicArns, async topicArn => {
 
 ### Variables
 
+#### EXPONENTIAL\_SEQUENCE
+
+• `Const` **EXPONENTIAL\_SEQUENCE**: `number`[]
+
+Array of 25 exponential numbers starting from 1 up to 33554432.
+It can be used to form your own backoff interval array.
+
+**`example`**
+```javascript
+
+// 1ms, 2ms, 4ms, 8ms, 16ms, 32ms
+PromiseUtils.withRetry(() => doSomething(), EXPONENTIAL_SEQUENCE.slice(0, 5), err => err.statusCode === 429);
+// 1s, 2s, 4s, 8s, 10s, 10s, 10s, 10s, 10s, 10s
+PromiseUtils.withRetry(() => doSomething(), Array.from({length: 10}, (_v, i) => 1000 * Math.min(EXPONENTIAL_SEQUENCE[i], 10)), err => err.statusCode === 429);
+// with +-10% randomness: 1s, 2s, 4s, 8s
+PromiseUtils.withRetry(() => doSomething(), FIBONACCI_SEQUENCE.slice(0, 4).map(n => 1000 * n * (1 + (Math.random() - 0.5) / 5)), err => err.statusCode === 429);
+
+___
+
+```
 #### FIBONACCI\_SEQUENCE
 
 • `Const` **FIBONACCI\_SEQUENCE**: `number`[]
 
-Array of Fibonacci numbers starting from 1 up to 317811.
-## Classes
+Array of 25 Fibonacci numbers starting from 1 up to 317811.
+It can be used to form your own backoff interval array.
+
+**`example`**
+```javascript
+
+// 1ms, 2ms, 3ms, 5ms, 8ms, 13ms
+PromiseUtils.withRetry(() => doSomething(), FIBONACCI_SEQUENCE.slice(0, 5), err => err.statusCode === 429);
+// 1s, 2s, 3s, 4s, 8s, 10s, 10s, 10s, 10s, 10s
+PromiseUtils.withRetry(() => doSomething(), Array.from({length: 10}, (_v, i) => 1000 * Math.min(FIBONACCI_SEQUENCE[i], 10)), err => err.statusCode === 429);
+// with +-10% randomness: 1s, 2s, 3s, 5s, 8s, 13s
+PromiseUtils.withRetry(() => doSomething(), FIBONACCI_SEQUENCE.slice(0, 5).map(n => 1000 * n * (1 + (Math.random() - 0.5) / 5)), err => err.statusCode === 429);
+
+```## Classes
 
 
 <a name="classespromiseutilsmd"></a>
@@ -448,7 +481,8 @@ Do an operation repeatedly until a criteria is met.
 ```javascript
 
 const result = await PromiseUtils.withRetry(() => doSomething(), [100, 200, 300, 500, 800, 1000]);
-const result2 = await PromiseUtils.withRetry(() => doSomething(), PromiseUtils.FIBONACCI_SEQUENCE, err => err.statusCode === 429);
+const result2 = await PromiseUtils.withRetry(() => doSomething(), Array.from({length: 10}, (_v, i) => Math.min(FIBONACCI_SEQUENCE[i], 10), err => err.statusCode === 429);
+const result3 = await PromiseUtils.withRetry(() => doSomething(), attempt => attempt <= 8 ? 1000 * Math.min(FIBONACCI_SEQUENCE[attempt - 1], 10) : undefined, err => err.statusCode === 429);
 
 ```
 ###### Type parameters
@@ -463,7 +497,7 @@ const result2 = await PromiseUtils.withRetry(() => doSomething(), PromiseUtils.F
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `operation` | (`attempt`: `number`, `previousResult`: `undefined` \| `Result`, `previousError`: `undefined` \| `TError`) => `Promise`<`Result`\> | a function that outputs a Promise result, normally the operation does not use its arguments |
-| `backoff` | `number`[] \| (`attempt`: `number`, `previousResult`: `undefined` \| `Result`, `previousError`: `undefined` \| `TError`) => `undefined` \| `number` | Array of retry backoff periods (unit: milliseconds) or function for calculating them.                If retry is desired, before making next call to the operation the desired backoff period would be waited.                If the array runs out of elements or the function returns `undefined` or either the array or the function returns a negative number,                there would be no further call to the operation.                The `attempt` argument passed into backoff function starts from 2 because only retries need to backoff,                so the first retry is the second attempt. |
+| `backoff` | `number`[] \| (`attempt`: `number`, `previousResult`: `undefined` \| `Result`, `previousError`: `undefined` \| `TError`) => `undefined` \| `number` | Array of retry backoff periods (unit: milliseconds) or function for calculating them.                If retry is desired, before making next call to the operation the desired backoff period would be waited.                If the array runs out of elements or the function returns `undefined` or either the array or the function returns a negative number,                there would be no further call to the operation.                The `attempt` argument passed into backoff function starts from 1 because the function is called right after the first attempt and before the first retry. |
 | `shouldRetry` | (`previousError`: `undefined` \| `TError`, `previousResult`: `undefined` \| `Result`, `attempt`: `number`) => `boolean` | Predicate function for deciding whether another call to the operation should happen.                    If this argument is not defined, retry would happen whenever the operation rejects with an error.                    `shouldRetry` would be evaluated before `backoff`.                    The `attempt` argument passed into shouldRetry function starts from 1. |
 
 ###### Returns
@@ -481,7 +515,7 @@ Promise of the operation result potentially with retries already applied
 
 ### Enumeration: PromiseState
 
-The state of a Promise can only be on of: Pending, Fulfilled, and Rejected.
+The state of a Promise can only be one of: Pending, Fulfilled, and Rejected.
 
 #### Table of contents
 
