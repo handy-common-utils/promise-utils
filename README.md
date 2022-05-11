@@ -55,7 +55,7 @@ import { withRetry, inParallel, FIBONACCI_SEQUENCE, EXPONENTIAL_SEQUENCE } from 
 
 // withRetry(...)
 const result = await withRetry(() => doSomething(), [100, 200, 300, 500, 800, 1000]);
-const result2 = await withRetry(() => doSomething(), Array.from({length: 10}, (_v, i) => Math.min(FIBONACCI_SEQUENCE[i], 10)), err => err.statusCode === 429);
+const result2 = await withRetry(() => doSomething(), Array.from({length: 10}, (_v, i) => 1000 * Math.min(FIBONACCI_SEQUENCE[i], 10)), err => err.statusCode === 429);
 const result3 = await withRetry(() => doSomething(), attempt => attempt <= 8 ? 1000 * Math.min(EXPONENTIAL_SEQUENCE[attempt - 1], 10) : undefined, err => err.statusCode === 429);
 statusCode === 429);
 
