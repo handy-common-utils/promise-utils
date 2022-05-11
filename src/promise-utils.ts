@@ -1,7 +1,28 @@
 /**
- * Array of Fibonacci numbers starting from 1 up to 317811.
+ * Array of 25 Fibonacci numbers starting from 1 up to 317811.
+ * It can be used to form your own backoff interval array.
+ * @example
+ * // 1ms, 2ms, 3ms, 5ms, 8ms, 13ms
+ * PromiseUtils.withRetry(() => doSomething(), FIBONACCI_SEQUENCE.slice(0, 5), err => err.statusCode === 429);
+ * // 1s, 2s, 3s, 4s, 8s, 10s, 10s, 10s, 10s, 10s
+ * PromiseUtils.withRetry(() => doSomething(), Array.from({length: 10}, (_v, i) => 1000 * Math.min(FIBONACCI_SEQUENCE[i], 10), err => err.statusCode === 429);
+ * // with +-10% randomness: 1s, 2s, 3s, 5s, 8s, 13s
+ * PromiseUtils.withRetry(() => doSomething(), FIBONACCI_SEQUENCE.slice(0, 5).map(n => 1000 * n * (1 + (Math.random() - 0.5) / 5)), err => err.statusCode === 429);
  */
 export const FIBONACCI_SEQUENCE = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811];
+
+/**
+ * Array of 25 exponential numbers starting from 1 up to 33554432.
+ * It can be used to form your own backoff interval array.
+ * @example
+ * // 1ms, 2ms, 4ms, 8ms, 16ms, 32ms
+ * PromiseUtils.withRetry(() => doSomething(), EXPONENTIAL_SEQUENCE.slice(0, 5), err => err.statusCode === 429);
+ * // 1s, 2s, 4s, 8s, 10s, 10s, 10s, 10s, 10s, 10s
+ * PromiseUtils.withRetry(() => doSomething(), Array.from({length: 10}, (_v, i) => 1000 * Math.min(EXPONENTIAL_SEQUENCE[i], 10), err => err.statusCode === 429);
+ * // with +-10% randomness: 1s, 2s, 4s, 8s
+ * PromiseUtils.withRetry(() => doSomething(), FIBONACCI_SEQUENCE.slice(0, 4).map(n => 1000 * n * (1 + (Math.random() - 0.5) / 5)), err => err.statusCode === 429);
+ */
+export const EXPONENTIAL_SEQUENCE = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 1597, 32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432];
 
 /**
  * The state of a Promise can only be one of: Pending, Fulfilled, and Rejected.
