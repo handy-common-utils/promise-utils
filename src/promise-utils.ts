@@ -294,16 +294,19 @@ export abstract class PromiseUtils {
       previousState = await PromiseUtils.promiseState(previousResultPromise);
     }
     switch (previousState) {
-      case PromiseState.Pending:  // concurrency
+      case PromiseState.Pending: {  // concurrency
         resultPromise = previousResultPromise!.then(result => operation(PromiseState.Pending, PromiseState.Fulfilled, result), error => operation(PromiseState.Pending, PromiseState.Rejected, error));
         break;
-      case undefined: // no concurrency and no history
+      }
+      case undefined: { // no concurrency and no history
         // eslint-disable-next-line unicorn/no-useless-undefined
         resultPromise = operation(undefined, undefined, undefined);
         break;
-      default:  // no concurrency but with history
+      }
+      default: {  // no concurrency but with history
         resultPromise = operation(previousState, previousState, await previousResultPromise!.catch(error => error));
         break;
+      }
     }
 
     PromiseUtils.synchronizationLocks.set(lock, resultPromise);
