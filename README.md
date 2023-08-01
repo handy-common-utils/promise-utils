@@ -76,37 +76,15 @@ await inParallel(5, topicArns, async topicArn => {
 <!-- API start -->
 <a name="readmemd"></a>
 
-@handy-common-utils/promise-utils
-
 ## @handy-common-utils/promise-utils
 
-### Table of contents
-
-#### Enumerations
+### Enumerations
 
 - [PromiseState](#enumspromisestatemd)
 
-#### Classes
+### Classes
 
 - [PromiseUtils](#classespromiseutilsmd)
-
-#### Variables
-
-- [EXPONENTIAL\_SEQUENCE](#exponential_sequence)
-- [FIBONACCI\_SEQUENCE](#fibonacci_sequence)
-
-#### Functions
-
-- [delayedReject](#delayedreject)
-- [delayedResolve](#delayedresolve)
-- [inParallel](#inparallel)
-- [promiseState](#promisestate)
-- [repeat](#repeat)
-- [synchronised](#synchronised)
-- [synchronized](#synchronized)
-- [timeoutReject](#timeoutreject)
-- [timeoutResolve](#timeoutresolve)
-- [withRetry](#withretry)
 
 ### Variables
 
@@ -117,19 +95,19 @@ await inParallel(5, topicArns, async topicArn => {
 Array of 25 exponential numbers starting from 1 up to 33554432.
 It can be used to form your own backoff interval array.
 
-**`example`**
-```javascript
+**`Example`**
 
+```ts
 // 1ms, 2ms, 4ms, 8ms, 16ms, 32ms
 PromiseUtils.withRetry(() => doSomething(), EXPONENTIAL_SEQUENCE.slice(0, 5), err => err.statusCode === 429);
 // 1s, 2s, 4s, 8s, 10s, 10s, 10s, 10s, 10s, 10s
 PromiseUtils.withRetry(() => doSomething(), Array.from({length: 10}, (_v, i) => 1000 * Math.min(EXPONENTIAL_SEQUENCE[i], 10)), err => err.statusCode === 429);
 // with +-10% randomness: 1s, 2s, 4s, 8s
 PromiseUtils.withRetry(() => doSomething(), FIBONACCI_SEQUENCE.slice(0, 4).map(n => 1000 * n * (1 + (Math.random() - 0.5) / 5)), err => err.statusCode === 429);
+```
 
 ___
 
-```
 #### FIBONACCI\_SEQUENCE
 
 • `Const` **FIBONACCI\_SEQUENCE**: `number`[]
@@ -137,43 +115,22 @@ ___
 Array of 25 Fibonacci numbers starting from 1 up to 317811.
 It can be used to form your own backoff interval array.
 
-**`example`**
-```javascript
+**`Example`**
 
+```ts
 // 1ms, 2ms, 3ms, 5ms, 8ms, 13ms
 PromiseUtils.withRetry(() => doSomething(), FIBONACCI_SEQUENCE.slice(0, 5), err => err.statusCode === 429);
 // 1s, 2s, 3s, 4s, 8s, 10s, 10s, 10s, 10s, 10s
 PromiseUtils.withRetry(() => doSomething(), Array.from({length: 10}, (_v, i) => 1000 * Math.min(FIBONACCI_SEQUENCE[i], 10)), err => err.statusCode === 429);
 // with +-10% randomness: 1s, 2s, 3s, 5s, 8s, 13s
 PromiseUtils.withRetry(() => doSomething(), FIBONACCI_SEQUENCE.slice(0, 5).map(n => 1000 * n * (1 + (Math.random() - 0.5) / 5)), err => err.statusCode === 429);
-
-```## Classes
+```
+## Classes
 
 
 <a name="classespromiseutilsmd"></a>
 
-[@handy-common-utils/promise-utils](#readmemd) / PromiseUtils
-
 ### Class: PromiseUtils
-
-#### Table of contents
-
-##### Constructors
-
-- [constructor](#constructor)
-
-##### Methods
-
-- [delayedReject](#delayedreject)
-- [delayedResolve](#delayedresolve)
-- [inParallel](#inparallel)
-- [promiseState](#promisestate)
-- [repeat](#repeat)
-- [synchronised](#synchronised)
-- [synchronized](#synchronized)
-- [timeoutReject](#timeoutreject)
-- [timeoutResolve](#timeoutresolve)
-- [withRetry](#withretry)
 
 #### Constructors
 
@@ -228,7 +185,7 @@ Create a Promise that resolves after number of milliseconds specified
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `ms` | `number` | number of milliseconds after which the created Promise would resolve |
-| `result?` | `T` \| `PromiseLike`<`T`\> \| () => `T` \| `PromiseLike`<`T`\> | the result to be resolved for the Promise, or a function that supplies the reuslt. |
+| `result?` | `T` \| `PromiseLike`<`T`\> \| () => `T` \| `PromiseLike`<`T`\> | the result to be resolved for the Promise, or a function that supplies the result. |
 
 ###### Returns
 
@@ -244,19 +201,6 @@ ___
 
 Run multiple jobs/operations in parallel.
 
-**`example`**
-```javascript
-
-const topicArns = topics.map(topic => topic.TopicArn!);
-await PromiseUtils.inParallel(5, topicArns, async topicArn => {
-  const topicAttributes = (await sns.getTopicAttributes({ TopicArn: topicArn }).promise()).Attributes!;
-  const topicDetails = { ...topicAttributes, subscriptions: [] } as any;
-  if (this.shouldInclude(topicArn)) {
-    inventory.snsTopicsByArn.set(topicArn, topicDetails);
-  }
-});
-
-```
 ###### Type parameters
 
 | Name | Type | Description |
@@ -270,7 +214,7 @@ await PromiseUtils.inParallel(5, topicArns, async topicArn => {
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `parallelism` | `number` | how many jobs/operations can be running at the same time |
-| `jobs` | `Iterable`<`Data`\> | job data which will be the input to operation function.                    This function is safe when there are infinite unknown number of elements in the job data. |
+| `jobs` | `Iterable`<`Data`\> | job data which will be the input to operation function. This function is safe when there are infinite unknown number of elements in the job data. |
 | `operation` | (`job`: `Data`, `index`: `number`) => `Promise`<`Result`\> | the function that turns job data into result asynchronously |
 
 ###### Returns
@@ -280,6 +224,19 @@ await PromiseUtils.inParallel(5, topicArns, async topicArn => {
 Promise of void if the operation function does not return a value,
          or promise of an array containing results returned from the operation function.
          In the array containing results, each element is either the fulfilled result, or the rejected error/reason.
+
+**`Example`**
+
+```ts
+const topicArns = topics.map(topic => topic.TopicArn!);
+await PromiseUtils.inParallel(5, topicArns, async topicArn => {
+  const topicAttributes = (await sns.getTopicAttributes({ TopicArn: topicArn }).promise()).Attributes!;
+  const topicDetails = { ...topicAttributes, subscriptions: [] } as any;
+  if (this.shouldInclude(topicArn)) {
+    inventory.snsTopicsByArn.set(topicArn, topicDetails);
+  }
+});
+```
 
 ___
 
@@ -300,7 +257,7 @@ Please note that the returned value is a Promise, although it resolves immediate
 
 `Promise`<[`PromiseState`](#enumspromisestatemd)\>
 
-A Promise that resolves immediately cotaining the state of the input Promise
+A Promise that resolves immediately containing the state of the input Promise
 
 ___
 
@@ -311,17 +268,6 @@ ___
 Do an operation repeatedly and collect all the results.
 This function is useful for client side pagination.
 
-**`example`**
-```javascript
-
-const domainNameObjects = await PromiseUtils.repeat(
-  pagingParam => apig.getDomainNames({limit: 500, ...pagingParam}).promise(),
-  esponse => response.position? {position: response.position} : null,
-  (collection, response) => collection.concat(response.items!),
-  [] as APIGateway.DomainName[],
-);
-
-```
 ###### Type parameters
 
 | Name | Description |
@@ -335,7 +281,7 @@ const domainNameObjects = await PromiseUtils.repeat(
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `operation` | (`parameter`: `Partial`<`Param`\>) => `Promise`<`Result`\> | a function that takes paging parameter as input and outputs a result, normally the operation supports paging |
-| `nextParameter` | (`response`: `Result`) => ``null`` \| `Partial`<`Param`\> \| `Promise`<`Partial`<`Param`\>\> | The function for calculating next parameter from the operation result.                      Normally the parameter controls paging,                      This function should return null when next invocation of the operation function is not desired.                      If next invocation is desired, the return value of this function can be a Promise or not a Promise. |
+| `nextParameter` | (`response`: `Result`) => ``null`` \| `Partial`<`Param`\> \| `Promise`<`Partial`<`Param`\>\> | The function for calculating next parameter from the operation result. Normally the parameter controls paging, This function should return null when next invocation of the operation function is not desired. If next invocation is desired, the return value of this function can be a Promise or not a Promise. |
 | `collect` | (`collection`: `Collection`, `result`: `Result`) => `Collection` | the function for merging operation result into the collection |
 | `initialCollection` | `Collection` | initial collection which would be the first argument passed into the first invocation of the collect function |
 | `initialParameter` | `Partial`<`Param`\> | the parameter for the first operation |
@@ -346,13 +292,24 @@ const domainNameObjects = await PromiseUtils.repeat(
 
 Promise of collection of all the results returned by the operation function
 
+**`Example`**
+
+```ts
+const domainNameObjects = await PromiseUtils.repeat(
+  pagingParam => apig.getDomainNames({limit: 500, ...pagingParam}).promise(),
+  response => response.position? {position: response.position} : null,
+  (collection, response) => collection.concat(response.items!),
+  [] as APIGateway.DomainName[],
+);
+```
+
 ___
 
 ##### synchronised
 
 ▸ `Static` **synchronised**<`T`\>(`lock`, `operation`): `Promise`<`T`\>
 
-This is just another spelling of [PromiseUtils.synchronized](#synchronized).
+This is just another spelling of [synchronized](#synchronized).
 
 ###### Type parameters
 
@@ -410,11 +367,11 @@ ___
 
 ▸ `Static` **timeoutReject**<`T`, `R`\>(`operation`, `ms`, `rejectReason`): `Promise`<`T`\>
 
-Apply timeout to a Promise. In case timeout happens, reject with the reason specified.
-If timeout does not happen, the resolved result or rejection reason of the original Promise would be the outcome of the Promise returned from this function.
-If timeout does not happen and the 'rejectReason' parameter is a function, the function won't be called.
-The 'operation' parameter's rejection would not be handled by this function, you may want to handle it outside of this function,
-just for avoiding warnings like "(node:4330) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously".
+Applies a timeout to a Promise or a function that returns a Promise.
+If the timeout occurs, rejects with the specified reason.
+If the timeout doesn't occur, the resolved result or rejection reason of the original Promise will be the outcome of the Promise returned from this function.
+If the 'reason' parameter is a function and timeout doesn't occur, the function won't be called.
+The rejection of the 'operation' parameter is not handled by this function, you may want to handle it outside of this function to avoid warnings like "(node:4330) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously".
 
 ###### Type parameters
 
@@ -427,15 +384,15 @@ just for avoiding warnings like "(node:4330) PromiseRejectionHandledWarning: Pro
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `operation` | `Promise`<`T`\> | the original Promise for which timeout would be applied |
-| `ms` | `number` | number of milliseconds for the timeout |
-| `rejectReason` | `R` \| `PromiseLike`<`R`\> \| () => `R` \| `PromiseLike`<`R`\> | the reason of the rejection in case timeout happens, or a function that supplies the reason. |
+| `operation` | `Promise`<`T`\> \| () => `Promise`<`T`\> | The original Promise or a function that returns a Promise for which the timeout will be applied. |
+| `ms` | `number` | The number of milliseconds for the timeout. |
+| `rejectReason` | `R` \| `PromiseLike`<`R`\> \| () => `R` \| `PromiseLike`<`R`\> | The reason to reject with if the timeout occurs, or a function that supplies the reason. |
 
 ###### Returns
 
 `Promise`<`T`\>
 
-the new Promise that rejects with the specified reason in case timeout happens
+A new Promise that rejects with the specified reason if the timeout occurs.
 
 ___
 
@@ -443,11 +400,11 @@ ___
 
 ▸ `Static` **timeoutResolve**<`T`\>(`operation`, `ms`, `result?`): `Promise`<`T`\>
 
-Apply timeout to a Promise. In case timeout happens, resolve to the result specified.
-If timeout does not happen, the resolved result or rejection reason of the original Promise would be the outcome of the Promise returned from this function.
-If timeout does not happen and the 'result' parameter is a function, the function won't be called.
-The 'operation' parameter's rejection would not be handled by this function, you may want to handle it outside of this function,
-just for avoiding warnings like "(node:4330) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously".
+Applies a timeout to a Promise or a function that returns a Promise.
+If the timeout occurs, resolves to the specified result.
+If the timeout doesn't occur, the resolved result or rejection reason of the original Promise will be the outcome of the Promise returned from this function.
+If the 'result' parameter is a function and timeout doesn't occur, the function won't be called.
+The rejection of the 'operation' parameter is not handled by this function, you may want to handle it outside of this function to avoid warnings like "(node:4330) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously".
 
 ###### Type parameters
 
@@ -459,15 +416,15 @@ just for avoiding warnings like "(node:4330) PromiseRejectionHandledWarning: Pro
 
 | Name | Type | Description |
 | :------ | :------ | :------ |
-| `operation` | `Promise`<`T`\> | the original Promise for which timeout would be applied |
-| `ms` | `number` | number of milliseconds for the timeout |
-| `result?` | `T` \| `PromiseLike`<`T`\> \| () => `T` \| `PromiseLike`<`T`\> | the result to be resolved in case timeout happens, or a function that supplies the reuslt. |
+| `operation` | `Promise`<`T`\> \| () => `Promise`<`T`\> | The original Promise or a function that returns a Promise for which the timeout will be applied. |
+| `ms` | `number` | The number of milliseconds for the timeout. |
+| `result?` | `T` \| `PromiseLike`<`T`\> \| () => `T` \| `PromiseLike`<`T`\> | The result to be resolved with if the timeout occurs, or a function that supplies the result. |
 
 ###### Returns
 
 `Promise`<`T`\>
 
-the new Promise that resolves to the specified result in case timeout happens
+A new Promise that resolves to the specified result if the timeout occurs.
 
 ___
 
@@ -477,14 +434,6 @@ ___
 
 Do an operation repeatedly until a criteria is met.
 
-**`example`**
-```javascript
-
-const result = await PromiseUtils.withRetry(() => doSomething(), [100, 200, 300, 500, 800, 1000]);
-const result2 = await PromiseUtils.withRetry(() => doSomething(), Array.from({length: 10}, (_v, i) => 1000 * Math.min(FIBONACCI_SEQUENCE[i], 10), err => err.statusCode === 429);
-const result3 = await PromiseUtils.withRetry(() => doSomething(), attempt => attempt <= 8 ? 1000 * Math.min(FIBONACCI_SEQUENCE[attempt - 1], 10) : undefined, err => err.statusCode === 429);
-
-```
 ###### Type parameters
 
 | Name | Type | Description |
@@ -497,8 +446,8 @@ const result3 = await PromiseUtils.withRetry(() => doSomething(), attempt => att
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `operation` | (`attempt`: `number`, `previousResult`: `undefined` \| `Result`, `previousError`: `undefined` \| `TError`) => `Promise`<`Result`\> | a function that outputs a Promise result, normally the operation does not use its arguments |
-| `backoff` | `number`[] \| (`attempt`: `number`, `previousResult`: `undefined` \| `Result`, `previousError`: `undefined` \| `TError`) => `undefined` \| `number` | Array of retry backoff periods (unit: milliseconds) or function for calculating them.                If retry is desired, before making next call to the operation the desired backoff period would be waited.                If the array runs out of elements or the function returns `undefined` or either the array or the function returns a negative number,                there would be no further call to the operation.                The `attempt` argument passed into backoff function starts from 1 because the function is called right after the first attempt and before the first retry. |
-| `shouldRetry` | (`previousError`: `undefined` \| `TError`, `previousResult`: `undefined` \| `Result`, `attempt`: `number`) => `boolean` | Predicate function for deciding whether another call to the operation should happen.                    If this argument is not defined, retry would happen whenever the operation rejects with an error.                    `shouldRetry` would be evaluated before `backoff`.                    The `attempt` argument passed into shouldRetry function starts from 1. |
+| `backoff` | `number`[] \| (`attempt`: `number`, `previousResult`: `undefined` \| `Result`, `previousError`: `undefined` \| `TError`) => `undefined` \| `number` | Array of retry backoff periods (unit: milliseconds) or function for calculating them. If retry is desired, before making next call to the operation the desired backoff period would be waited. If the array runs out of elements or the function returns `undefined` or either the array or the function returns a negative number, there would be no further call to the operation. The `attempt` argument passed into backoff function starts from 1 because the function is called right after the first attempt and before the first retry. |
+| `shouldRetry` | (`previousError`: `undefined` \| `TError`, `previousResult`: `undefined` \| `Result`, `attempt`: `number`) => `boolean` | Predicate function for deciding whether another call to the operation should happen. If this argument is not defined, retry would happen whenever the operation rejects with an error. `shouldRetry` would be evaluated before `backoff`. The `attempt` argument passed into shouldRetry function starts from 1. |
 
 ###### Returns
 
@@ -506,40 +455,38 @@ const result3 = await PromiseUtils.withRetry(() => doSomething(), attempt => att
 
 Promise of the operation result potentially with retries already applied
 
+**`Example`**
+
+```ts
+const result = await PromiseUtils.withRetry(() => doSomething(), [100, 200, 300, 500, 800, 1000]);
+const result2 = await PromiseUtils.withRetry(() => doSomething(), Array.from({length: 10}, (_v, i) => 1000 * Math.min(FIBONACCI_SEQUENCE[i], 10), err => err.statusCode === 429);
+const result3 = await PromiseUtils.withRetry(() => doSomething(), attempt => attempt <= 8 ? 1000 * Math.min(FIBONACCI_SEQUENCE[attempt - 1], 10) : undefined, err => err.statusCode === 429);
+```
+
 ## Enums
 
 
 <a name="enumspromisestatemd"></a>
 
-[@handy-common-utils/promise-utils](#readmemd) / PromiseState
-
 ### Enumeration: PromiseState
 
 The state of a Promise can only be one of: Pending, Fulfilled, and Rejected.
 
-#### Table of contents
-
-##### Enumeration members
-
-- [Fulfilled](#fulfilled)
-- [Pending](#pending)
-- [Rejected](#rejected)
-
-#### Enumeration members
+#### Enumeration Members
 
 ##### Fulfilled
 
-• **Fulfilled** = `"Fulfilled"`
+• **Fulfilled** = ``"Fulfilled"``
 
 ___
 
 ##### Pending
 
-• **Pending** = `"Pending"`
+• **Pending** = ``"Pending"``
 
 ___
 
 ##### Rejected
 
-• **Rejected** = `"Rejected"`
+• **Rejected** = ``"Rejected"``
 <!-- API end -->
