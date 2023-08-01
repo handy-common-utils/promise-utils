@@ -125,6 +125,264 @@ PromiseUtils.withRetry(() => doSomething(), Array.from({length: 10}, (_v, i) => 
 // with +-10% randomness: 1s, 2s, 3s, 5s, 8s, 13s
 PromiseUtils.withRetry(() => doSomething(), FIBONACCI_SEQUENCE.slice(0, 5).map(n => 1000 * n * (1 + (Math.random() - 0.5) / 5)), err => err.statusCode === 429);
 ```
+
+### Functions
+
+#### delayedReject
+
+▸ **delayedReject**<`T`, `R`\>(`ms`, `reason`): `Promise`<`T`\>
+
+See [delayedReject](#delayedreject) for full documentation.
+
+##### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `T` | `never` |
+| `R` | `any` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `ms` | `number` |
+| `reason` | `R` \| `PromiseLike`<`R`\> \| () => `R` \| `PromiseLike`<`R`\> |
+
+##### Returns
+
+`Promise`<`T`\>
+
+___
+
+#### delayedResolve
+
+▸ **delayedResolve**<`T`\>(`ms`, `result?`): `Promise`<`T`\>
+
+See [delayedResolve](#delayedresolve) for full documentation.
+
+##### Type parameters
+
+| Name |
+| :------ |
+| `T` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `ms` | `number` |
+| `result?` | `T` \| `PromiseLike`<`T`\> \| () => `T` \| `PromiseLike`<`T`\> |
+
+##### Returns
+
+`Promise`<`T`\>
+
+___
+
+#### inParallel
+
+▸ **inParallel**<`Data`, `Result`, `TError`\>(`parallelism`, `jobs`, `operation`): `Promise`<(`Result` \| `TError`)[]\>
+
+See [inParallel](#inparallel) for full documentation.
+
+##### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `Data` | `Data` |
+| `Result` | `Result` |
+| `TError` | `Result` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `parallelism` | `number` |
+| `jobs` | `Iterable`<`Data`\> |
+| `operation` | (`job`: `Data`, `index`: `number`) => `Promise`<`Result`\> |
+
+##### Returns
+
+`Promise`<(`Result` \| `TError`)[]\>
+
+___
+
+#### promiseState
+
+▸ **promiseState**(`p`): `Promise`<[`PromiseState`](#enumspromisestatemd)\>
+
+See [promiseState](#promisestate) for full documentation.
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `p` | `Promise`<`any`\> |
+
+##### Returns
+
+`Promise`<[`PromiseState`](#enumspromisestatemd)\>
+
+___
+
+#### repeat
+
+▸ **repeat**<`Result`, `Param`, `Collection`\>(`operation`, `nextParameter`, `collect`, `initialCollection`, `initialParameter?`): `Promise`<`Collection`\>
+
+See [repeat](#repeat) for full documentation.
+
+##### Type parameters
+
+| Name |
+| :------ |
+| `Result` |
+| `Param` |
+| `Collection` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `operation` | (`parameter`: `Partial`<`Param`\>) => `Promise`<`Result`\> |
+| `nextParameter` | (`response`: `Result`) => ``null`` \| `Partial`<`Param`\> \| `Promise`<`Partial`<`Param`\>\> |
+| `collect` | (`collection`: `Collection`, `result`: `Result`) => `Collection` |
+| `initialCollection` | `Collection` |
+| `initialParameter` | `Partial`<`Param`\> |
+
+##### Returns
+
+`Promise`<`Collection`\>
+
+___
+
+#### synchronised
+
+▸ **synchronised**<`T`\>(`lock`, `operation`): `Promise`<`T`\>
+
+See [synchronised](#synchronised) for full documentation.
+
+##### Type parameters
+
+| Name |
+| :------ |
+| `T` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `lock` | `unknown` |
+| `operation` | (`previousState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousSettledState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousResult`: `any`) => `Promise`<`T`\> |
+
+##### Returns
+
+`Promise`<`T`\>
+
+___
+
+#### synchronized
+
+▸ **synchronized**<`T`\>(`lock`, `operation`): `Promise`<`T`\>
+
+See [synchronized](#synchronized) for full documentation.
+
+##### Type parameters
+
+| Name |
+| :------ |
+| `T` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `lock` | `unknown` |
+| `operation` | (`previousState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousSettledState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousResult`: `any`) => `Promise`<`T`\> |
+
+##### Returns
+
+`Promise`<`T`\>
+
+___
+
+#### timeoutReject
+
+▸ **timeoutReject**<`T`, `R`\>(`operation`, `ms`, `rejectReason`): `Promise`<`T`\>
+
+See [timeoutReject](#timeoutreject) for full documentation.
+
+##### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `T` | `never` |
+| `R` | `any` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `operation` | `Promise`<`T`\> \| () => `Promise`<`T`\> |
+| `ms` | `number` |
+| `rejectReason` | `R` \| `PromiseLike`<`R`\> \| () => `R` \| `PromiseLike`<`R`\> |
+
+##### Returns
+
+`Promise`<`T`\>
+
+___
+
+#### timeoutResolve
+
+▸ **timeoutResolve**<`T`\>(`operation`, `ms`, `result?`): `Promise`<`T`\>
+
+See [timeoutResolve](#timeoutresolve) for full documentation.
+
+##### Type parameters
+
+| Name |
+| :------ |
+| `T` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `operation` | `Promise`<`T`\> \| () => `Promise`<`T`\> |
+| `ms` | `number` |
+| `result?` | `T` \| `PromiseLike`<`T`\> \| () => `T` \| `PromiseLike`<`T`\> |
+
+##### Returns
+
+`Promise`<`T`\>
+
+___
+
+#### withRetry
+
+▸ **withRetry**<`Result`, `TError`\>(`operation`, `backoff`, `shouldRetry?`): `Promise`<`Result`\>
+
+See [withRetry](#withretry) for full documentation.
+
+##### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `Result` | `Result` |
+| `TError` | `any` |
+
+##### Parameters
+
+| Name | Type |
+| :------ | :------ |
+| `operation` | (`attempt`: `number`, `previousResult`: `undefined` \| `Result`, `previousError`: `undefined` \| `TError`) => `Promise`<`Result`\> |
+| `backoff` | `number`[] \| (`attempt`: `number`, `previousResult`: `undefined` \| `Result`, `previousError`: `undefined` \| `TError`) => `undefined` \| `number` |
+| `shouldRetry` | (`previousError`: `undefined` \| `TError`, `previousResult`: `undefined` \| `Result`, `attempt`: `number`) => `boolean` |
+
+##### Returns
+
+`Promise`<`Result`\>
+
 ## Classes
 
 
