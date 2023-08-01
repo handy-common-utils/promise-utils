@@ -242,12 +242,20 @@ describe('PromiseUtils', () => {
       const p = PromiseUtils.timeoutResolve(PromiseUtils.delayedResolve(10, 1), 80, 2);
       await expect(p).eventually.eq(1);
     });
+    it('should return original fulfilled result supplied by a function when not timed-out', async () => {
+      const p = PromiseUtils.timeoutResolve(() => PromiseUtils.delayedResolve(10, 1), 80, 2);
+      await expect(p).eventually.eq(1);
+    });
     it('should return original rejected result when not timed-out', async () => {
       const p = PromiseUtils.timeoutResolve(PromiseUtils.delayedReject(10, '1'), 80, 2);
       await expect(p).to.be.rejectedWith('1');
     });
     it('should timeout with specified result', async () => {
       const p = PromiseUtils.timeoutResolve(PromiseUtils.delayedResolve(80, 1), 10, 2);
+      await expect(p).eventually.eq(2);
+    });
+    it('should timeout with specified result when the original promise is supplied by a function', async () => {
+      const p = PromiseUtils.timeoutResolve(() => PromiseUtils.delayedResolve(80, 1), 10, 2);
       await expect(p).eventually.eq(2);
     });
     it('should timeout with specified result as a Promise supplied by a function', async () => {
@@ -271,12 +279,20 @@ describe('PromiseUtils', () => {
       const p = PromiseUtils.timeoutReject(PromiseUtils.delayedResolve(10, 1), 80, '2');
       await expect(p).eventually.eq(1);
     });
+    it('should return original fulfilled result supplied by a function when not timed-out', async () => {
+      const p = PromiseUtils.timeoutReject(() => PromiseUtils.delayedResolve(10, 1), 80, '2');
+      await expect(p).eventually.eq(1);
+    });
     it('should return original rejected result when not timed-out', async () => {
       const p = PromiseUtils.timeoutReject(PromiseUtils.delayedReject(10, '1'), 80, '2');
       await expect(p).to.be.rejectedWith('1');
     });
     it('should timeout with specified reason', async () => {
       const p = PromiseUtils.timeoutReject(PromiseUtils.delayedReject(80, '1'), 10, '2');
+      await expect(p).to.be.rejectedWith('2');
+    });
+    it('should timeout with specified reason when the original promise is supplied by a function', async () => {
+      const p = PromiseUtils.timeoutReject(() => PromiseUtils.delayedReject(80, '1'), 10, '2');
       await expect(p).to.be.rejectedWith('2');
     });
     it('should timeout with specified reason as fulfilled Promise supplied by a function', async () => {

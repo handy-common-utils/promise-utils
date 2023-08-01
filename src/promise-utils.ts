@@ -215,22 +215,24 @@ export abstract class PromiseUtils {
   }
 
   /**
-   * Apply timeout to a Promise. In case timeout happens, resolve to the result specified.
-   * If timeout does not happen, the resolved result or rejection reason of the original Promise would be the outcome of the Promise returned from this function.
-   * If timeout does not happen and the 'result' parameter is a function, the function won't be called.
-   * The 'operation' parameter's rejection would not be handled by this function, you may want to handle it outside of this function,
-   * just for avoiding warnings like "(node:4330) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously".
-   * @param operation the original Promise for which timeout would be applied
-   * @param ms number of milliseconds for the timeout
-   * @param result the result to be resolved in case timeout happens, or a function that supplies the reuslt.
-   * @return the new Promise that resolves to the specified result in case timeout happens
+   * Applies a timeout to a Promise or a function that returns a Promise.
+   * If the timeout occurs, resolves to the specified result.
+   * If the timeout doesn't occur, the resolved result or rejection reason of the original Promise will be the outcome of the Promise returned from this function.
+   * If the 'result' parameter is a function and timeout doesn't occur, the function won't be called.
+   * The rejection of the 'operation' parameter is not handled by this function, you may want to handle it outside of this function to avoid warnings like "(node:4330) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously".
+   *
+   * @param operation The original Promise or a function that returns a Promise for which the timeout will be applied.
+   * @param ms The number of milliseconds for the timeout.
+   * @param result The result to be resolved with if the timeout occurs, or a function that supplies the result.
+   * @return A new Promise that resolves to the specified result if the timeout occurs.
    */
-  static timeoutResolve<T>(operation: Promise<T>, ms: number, result?: T | PromiseLike<T> | (() => (T | PromiseLike<T>)) | undefined): Promise<T> {
+  static timeoutResolve<T>(operation: Promise<T> | (() => Promise<T>), ms: number, result?: T | PromiseLike<T> | (() => (T | PromiseLike<T>)) | undefined): Promise<T> {
+    const promise = typeof operation === 'function' ? operation() : operation;
     return Promise.race([
-      operation,
+      promise,
       PromiseUtils.delayedResolve(
         ms,
-        () => PromiseUtils.promiseState(operation)
+        () => PromiseUtils.promiseState(promise)
                 .then(state => state === PromiseState.Pending ?
                   (typeof result === 'function' ? (result as () => T|PromiseLike<T>|undefined)() : result) :
                   {} as any), // this object would not be used because the operation should have already resolved
@@ -239,22 +241,24 @@ export abstract class PromiseUtils {
   }
 
   /**
-   * Apply timeout to a Promise. In case timeout happens, reject with the reason specified.
-   * If timeout does not happen, the resolved result or rejection reason of the original Promise would be the outcome of the Promise returned from this function.
-   * If timeout does not happen and the 'rejectReason' parameter is a function, the function won't be called.
-   * The 'operation' parameter's rejection would not be handled by this function, you may want to handle it outside of this function,
-   * just for avoiding warnings like "(node:4330) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously".
-   * @param operation the original Promise for which timeout would be applied
-   * @param ms number of milliseconds for the timeout
-   * @param rejectReason the reason of the rejection in case timeout happens, or a function that supplies the reason.
-   * @return the new Promise that rejects with the specified reason in case timeout happens
+   * Applies a timeout to a Promise or a function that returns a Promise.
+   * If the timeout occurs, rejects with the specified reason.
+   * If the timeout doesn't occur, the resolved result or rejection reason of the original Promise will be the outcome of the Promise returned from this function.
+   * If the 'reason' parameter is a function and timeout doesn't occur, the function won't be called.
+   * The rejection of the 'operation' parameter is not handled by this function, you may want to handle it outside of this function to avoid warnings like "(node:4330) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously".
+   *
+   * @param operation The original Promise or a function that returns a Promise for which the timeout will be applied.
+   * @param ms The number of milliseconds for the timeout.
+   * @param rejectReason The reason to reject with if the timeout occurs, or a function that supplies the reason.
+   * @return A new Promise that rejects with the specified reason if the timeout occurs.
    */
-  static timeoutReject<T = never, R = any>(operation: Promise<T>, ms: number, rejectReason: R | PromiseLike<R> | (() => R|PromiseLike<R>)): Promise<T> {
+  static timeoutReject<T = never, R = any>(operation: Promise<T> | (() => Promise<T>), ms: number, rejectReason: R | PromiseLike<R> | (() => R|PromiseLike<R>)): Promise<T> {
+    const promise = typeof operation === 'function' ? operation() : operation;
     return Promise.race([
-      operation,
+      promise,
       PromiseUtils.delayedReject(
         ms,
-        () => PromiseUtils.promiseState(operation)
+        () => PromiseUtils.promiseState(promise)
                 .then(state => state === PromiseState.Pending ?
                   (typeof rejectReason === 'function' ? (rejectReason as () => R|PromiseLike<R>)() : rejectReason) :
                   {}), // this object would not be used because the operation should have already resolved
