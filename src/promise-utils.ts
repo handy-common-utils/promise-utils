@@ -41,7 +41,7 @@ export abstract class PromiseUtils {
    * @example
    * const domainNameObjects = await PromiseUtils.repeat(
    *   pagingParam => apig.getDomainNames({limit: 500, ...pagingParam}).promise(),
-   *   esponse => response.position? {position: response.position} : null,
+   *   response => response.position? {position: response.position} : null,
    *   (collection, response) => collection.concat(response.items!),
    *   [] as APIGateway.DomainName[],
    * );
@@ -189,7 +189,7 @@ export abstract class PromiseUtils {
   /**
    * Create a Promise that resolves after number of milliseconds specified
    * @param ms number of milliseconds after which the created Promise would resolve
-   * @param result the result to be resolved for the Promise, or a function that supplies the reuslt.
+   * @param result the result to be resolved for the Promise, or a function that supplies the result.
    * @returns the new Promise created
    */
   static delayedResolve<T>(ms: number, result?: T | PromiseLike<T> | (() => (T | PromiseLike<T>))): Promise<T> {
@@ -270,7 +270,7 @@ export abstract class PromiseUtils {
    * Get the state of the Promise.
    * Please note that the returned value is a Promise, although it resolves immediately.
    * @param p the Promise for which we would like to know its state
-   * @return A Promise that resolves immediately cotaining the state of the input Promise
+   * @return A Promise that resolves immediately containing the state of the input Promise
    */
   static promiseState(p: Promise<any>): Promise<PromiseState> {
     const t = {};

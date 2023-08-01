@@ -144,7 +144,7 @@ describe('PromiseUtils', () => {
                 expect(Math.abs(Date.now() - startTime - DELAY)).lt(ALLOWED_DEVIATION);
               });
     });
-    it('should handle function suppliying the result', () => {
+    it('should handle function supplying the result', () => {
       const DELAY = 60;
       const SUCC_RESULT = 'this is the success message';
       const startTime = Date.now();
@@ -166,7 +166,7 @@ describe('PromiseUtils', () => {
                 expect(Math.abs(Date.now() - startTime - DELAY)).lt(ALLOWED_DEVIATION);
               });
     });
-    it('should handle function suppliying the reason as a value', () => {
+    it('should handle function supplying the reason as a value', () => {
       const DELAY = 60;
       const ERROR_MSG = 'this is the error message';
       const startTime = Date.now();
@@ -176,7 +176,7 @@ describe('PromiseUtils', () => {
                 expect(Math.abs(Date.now() - startTime - DELAY)).lt(ALLOWED_DEVIATION);
               });
     });
-    it('should handle function suppliying the reason as a Promise', () => {
+    it('should handle function supplying the reason as a Promise', () => {
       const DELAY = 60;
       const ERROR_MSG = 'this is the error message';
       const startTime = Date.now();
@@ -186,7 +186,7 @@ describe('PromiseUtils', () => {
                 expect(Math.abs(Date.now() - startTime - DELAY)).lt(ALLOWED_DEVIATION);
               });
     });
-    it('should handle function suppliying the reason as the rejection reason of a Promise', () => {
+    it('should handle function supplying the reason as the rejection reason of a Promise', () => {
       const DELAY = 60;
       const ERROR_MSG = 'this is the error message';
       const startTime = Date.now();
@@ -263,15 +263,15 @@ describe('PromiseUtils', () => {
       await expect(p).eventually.eq(2);
     });
     it('should not execute the result function when not timed-out', async () => {
-      let resultFuctionExecuted = false;
+      let resultFunctionExecuted = false;
       const resultFunction = () => {
-        resultFuctionExecuted = true;
+        resultFunctionExecuted = true;
         return 2;
       };
       const p = PromiseUtils.timeoutResolve(PromiseUtils.delayedResolve(10, 1), 80, resultFunction);
       await expect(p).eventually.eq(1);
       await PromiseUtils.delayedResolve(80);
-      expect(resultFuctionExecuted).to.be.false;
+      expect(resultFunctionExecuted).to.be.false;
     });
   });
   describe('timeoutReject(...)', () => {
@@ -304,15 +304,15 @@ describe('PromiseUtils', () => {
       await expect(p).to.be.rejectedWith('2');
     });
     it('should not execute the reason function when not timed-out', async () => {
-      let reasonFuctionExecuted = false;
+      let reasonFunctionExecuted = false;
       const reasonFunction = () => {
-        reasonFuctionExecuted = true;
+        reasonFunctionExecuted = true;
         return '2';
       };
       const p = PromiseUtils.timeoutReject(PromiseUtils.delayedResolve(10, 1), 80, reasonFunction);
       await expect(p).eventually.eq(1);
       await PromiseUtils.delayedResolve(80);
-      expect(reasonFuctionExecuted).to.be.false;
+      expect(reasonFunctionExecuted).to.be.false;
     });
   });
   describe('promiseState(...)', () => {

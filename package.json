@@ -32,8 +32,12 @@
     "url": "https://github.com/handy-common-utils/promise-utils/issues"
   },
   "keywords": [
-    "prmomise",
+    "promise",
     "utils",
+    "retry",
+    "delay",
+    "resolve",
+    "reject",
     "utilities"
   ],
   "author": "James Hu",
