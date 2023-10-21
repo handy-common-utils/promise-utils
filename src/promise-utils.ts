@@ -136,16 +136,26 @@ export abstract class PromiseUtils {
 
   /**
    * Run multiple jobs/operations in parallel.
+   * 
+   * By default this function does not throw / reject with error when any of the job/operation fails.
+   * Operation errors are returned together with operation results in the same returned array.
+   * That also means this function only returns when all the jobs/operations settle (either resolve or reject).
+   * 
+   * However, if options.abortOnError is true, this function throws / rejects with error when any of the job/operation fails.
+   * That also means, some of the jobs/operations may not get the chance to be executed if one of them fails.
    *
    * @example
-   * const topicArns = topics.map(topic => topic.TopicArn!);
-   * await PromiseUtils.inParallel(5, topicArns, async topicArn => {
+   * const attributesAndPossibleErrors = await PromiseUtils.inParallel(5, topicArns, async (topicArn) => {
    *   const topicAttributes = (await sns.getTopicAttributes({ TopicArn: topicArn }).promise()).Attributes!;
-   *   const topicDetails = { ...topicAttributes, subscriptions: [] } as any;
-   *   if (this.shouldInclude(topicArn)) {
-   *     inventory.snsTopicsByArn.set(topicArn, topicDetails);
-   *   }
+   *   return topicAttributes;
    * });
+   * 
+   * let results: Array<JobResult>;
+   * try {
+   *   results = await PromiseUtils.inParallel(100, jobs, async (job) => processor.process(job), { abortOnError: true });
+   * } catch (error) {
+   *   // handle the error
+   * }
    *
    * @template Data   Type of the job data, usually it would be an Array
    * @template Result Type of the return value of the operation function
@@ -154,14 +164,18 @@ export abstract class PromiseUtils {
    * @param jobs        job data which will be the input to operation function.
    *                    This function is safe when there are infinite unknown number of elements in the job data.
    * @param operation   the function that turns job data into result asynchronously
+   * @param options     Options for controlling the behavior of this function.
    * @returns Promise of void if the operation function does not return a value,
-   *          or promise of an array containing results returned from the operation function.
-   *          In the array containing results, each element is either the fulfilled result, or the rejected error/reason.
+   *          or promise of an array containing outcomes from the operation function.
+   *          In the returned array containing outcomes, each element is either the fulfilled result, or the rejected error/reason.
    */
   static async inParallel<Data, Result, TError = Result>(
     parallelism: number,
     jobs: Iterable<Data>,
     operation: (job: Data, index: number) => Promise<Result>,
+    options?: {
+      abortOnError: boolean;
+    },
   ): Promise<Array<Result | TError>> {
     if (parallelism < 1) {
       parallelism = 1;
@@ -179,7 +193,7 @@ export abstract class PromiseUtils {
         const job = iteratorResult.value;
         const jobIndex = index++;
         const jobResultPromise = operation(job, jobIndex);
-        jobResults[jobIndex] = await jobResultPromise.catch(error => error);
+        jobResults[jobIndex] = options?.abortOnError ? await jobResultPromise : await jobResultPromise.catch(error => error);
       }
     });
     await Promise.all(promises);
