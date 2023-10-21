@@ -502,11 +502,13 @@ Promise of void if the operation function does not return a value,
 **`Example`**
 
 ```ts
+// Capture errors in the returned array
 const attributesAndPossibleErrors = await PromiseUtils.inParallel(5, topicArns, async (topicArn) => {
   const topicAttributes = (await sns.getTopicAttributes({ TopicArn: topicArn }).promise()).Attributes!;
   return topicAttributes;
 });
 
+// Abort on the first error
 let results: Array<JobResult>;
 try {
   results = await PromiseUtils.inParallel(100, jobs, async (job) => processor.process(job), { abortOnError: true });
