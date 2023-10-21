@@ -145,11 +145,13 @@ export abstract class PromiseUtils {
    * That also means, some of the jobs/operations may not get the chance to be executed if one of them fails.
    *
    * @example
+   * // Capture errors in the returned array
    * const attributesAndPossibleErrors = await PromiseUtils.inParallel(5, topicArns, async (topicArn) => {
    *   const topicAttributes = (await sns.getTopicAttributes({ TopicArn: topicArn }).promise()).Attributes!;
    *   return topicAttributes;
    * });
    * 
+   * // Abort on the first error
    * let results: Array<JobResult>;
    * try {
    *   results = await PromiseUtils.inParallel(100, jobs, async (job) => processor.process(job), { abortOnError: true });

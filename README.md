@@ -60,14 +60,19 @@ const result3 = await withRetry(() => doSomething(), attempt => attempt <= 8 ? 1
 statusCode === 429);
 
 // inParallel(...)
-const topicArns = topics.map(topic => topic.TopicArn!);
-await inParallel(5, topicArns, async topicArn => {
+// Capture errors in the returned array
+const attributesAndPossibleErrors = await PromiseUtils.inParallel(5, topicArns, async (topicArn) => {
   const topicAttributes = (await sns.getTopicAttributes({ TopicArn: topicArn }).promise()).Attributes!;
-  const topicDetails = { ...topicAttributes, subscriptions: [] } as any;
-  if (this.shouldInclude(topicArn)) {
-    inventory.snsTopicsByArn.set(topicArn, topicDetails);
-  }
+  return topicAttributes;
 });
+
+// Abort on the first error
+let results: Array<JobResult>;
+try {
+  results = await PromiseUtils.inParallel(100, jobs, async (job) => processor.process(job), { abortOnError: true });
+} catch (error) {
+  // handle the error
+}
 
 ```
 
