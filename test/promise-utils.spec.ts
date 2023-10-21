@@ -236,6 +236,20 @@ describe('PromiseUtils', () => {
         expect(results.slice(NUM / 2)).eql(DATA.slice(NUM / 2).map(d => `${d}`));
       });
     });
+    it('should abort on error if the options.abortOnError flag is true', () => {
+      const DELAY = 3;
+      const NUM = 30;
+      const DATA: boolean[] = Array.from({ length: NUM });
+      DATA.fill(true, 0, NUM / 2);
+      DATA.fill(false, NUM / 2);
+      let count = 0;
+      const promise = PromiseUtils.inParallel(5, DATA, d => {
+        count ++;
+        return d ? PromiseUtils.delayedResolve(DELAY, d) : PromiseUtils.delayedReject(DELAY, `${d}`);
+      }, { abortOnError: true });
+      expect(promise).to.be.rejectedWith('false');
+      expect(count).to.be.lessThan(NUM);
+    });
   });
   describe('timeoutResolve(...)', () => {
     it('should return original fulfilled result when not timed-out', async () => {
