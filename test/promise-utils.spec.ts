@@ -197,6 +197,48 @@ describe('PromiseUtils', () => {
               });
     });
   });
+  describe('withConcurrency(...)', () => {
+    let OVERHEAD = 1;
+    for (const p of [-10, -10, -10, -10, -3, 0, 1, 2, 3, 5, 6, 10, 30]) {
+      it(`should run operations concurrently when concurrency=${p}`, function () {
+        this.timeout(10000);
+        const DELAY = 50;
+        const NUM = 30;
+        const DATA = Array.from({ length: NUM }).fill(1);
+        const startTime = Date.now();
+        let endTime = 0;
+        const promise = PromiseUtils.withConcurrency(p, DATA, () => PromiseUtils.delayedResolve<void>(DELAY))
+                                          .then(() => {
+                                            endTime = Date.now();
+                                          });
+        return promise.then(() => {
+          const duration = endTime - startTime;
+          const expectedDuration = (DELAY + OVERHEAD) * NUM / (p < 1 ? 1 : p);   // + overhead per operation
+          // console.log(`+${expectedDuration} -${duration}`);
+          if (p <= -10) {  // those p <= -10 are warm up and calibration runs
+            OVERHEAD += (duration - expectedDuration) * 0.9 / NUM;  // calibration
+          } else {
+            expect(OVERHEAD).to.lt(ALLOWED_DEVIATION);  // overhead should be small
+            expect(Math.abs(duration - expectedDuration)).lt(ALLOWED_DEVIATION);
+          }
+        });
+      });
+    }
+    it('should abort on error', () => {
+      const DELAY = 3;
+      const NUM = 30;
+      const DATA: boolean[] = Array.from({ length: NUM });
+      DATA.fill(true, 0, NUM / 2);
+      DATA.fill(false, NUM / 2);
+      let count = 0;
+      const promise = PromiseUtils.withConcurrency(5, DATA, d => {
+        count ++;
+        return d ? PromiseUtils.delayedResolve(DELAY, d) : PromiseUtils.delayedReject(DELAY, `${d}`);
+      });
+      expect(promise).to.be.rejectedWith('false');
+      expect(count).to.be.lessThan(NUM);
+    });
+  });
   describe('inParallel(...)', () => {
     let OVERHEAD = 1;
     for (const p of [-10, -10, -10, -10, -3, 0, 1, 2, 3, 5, 6, 10, 30]) {
@@ -214,7 +256,7 @@ describe('PromiseUtils', () => {
         return promise.then(() => {
           const duration = endTime - startTime;
           const expectedDuration = (DELAY + OVERHEAD) * NUM / (p < 1 ? 1 : p);   // + overhead per operation
-          console.log(`+${expectedDuration} -${duration}`);
+          // console.log(`+${expectedDuration} -${duration}`);
           if (p <= -10) {  // those p <= -10 are warm up and calibration runs
             OVERHEAD += (duration - expectedDuration) * 0.9 / NUM;  // calibration
           } else {

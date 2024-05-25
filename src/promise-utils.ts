@@ -135,7 +135,42 @@ export abstract class PromiseUtils {
   }
 
   /**
-   * Run multiple jobs/operations in parallel.
+   * Run multiple jobs/operations with a certain concurrency.
+   * 
+   * This function could throw / reject with error when a job/operation fails.
+   * When the error is re-thrown, remaining operations will not be executed.
+   * This is the difference between `withConcurrency(...)` and `inParallel(...)`.
+   * In most cases, `withConcurrency(...)` is more convenient.
+   * 
+   * @example
+   * // At any time, there would be no more than 5 concurrency API calls. Error would be re-thrown immediately when it occurs.
+   * const attributes = await PromiseUtils.withConcurrency(5, topicArns, async (topicArn) => {
+   *   const topicAttributes = (await sns.getTopicAttributes({ TopicArn: topicArn }).promise()).Attributes!;
+   *   return topicAttributes;
+   * });
+   * 
+   *
+   * @template Data   Type of the job data, usually it would be an Array
+   * @template Result Type of the return value of the operation function
+   *
+   * @param concurrency how many jobs/operations can be running at the same time
+   * @param jobs        job data which will be the input to operation function.
+   *                    This function is safe when there are infinite unknown number of elements in the job data.
+   * @param operation   the function that turns job data into result asynchronously
+   * @returns Promise of an array containing results from the operation function.
+   *          Results in the returned array are in the same order as the corresponding elements in the jobs array.
+   */
+  static async withConcurrency<Data, Result>(
+    concurrency: number,
+    jobs: Iterable<Data>,
+    operation: (job: Data, index: number) => Promise<Result>,
+  ): Promise<Array<Result>> {
+    return inParallel(concurrency, jobs, operation);
+  }
+
+  /**
+   * Run multiple jobs/operations in parallel, by default all the operations will be executed disregarding whether any of them fails / gets rejected.
+   * In most cases, `withConcurrency(...)` is more convenient, though.
    * 
    * By default this function does not throw / reject with error when any of the job/operation fails.
    * Operation errors are returned together with operation results in the same returned array.
@@ -167,8 +202,7 @@ export abstract class PromiseUtils {
    *                    This function is safe when there are infinite unknown number of elements in the job data.
    * @param operation   the function that turns job data into result asynchronously
    * @param options     Options for controlling the behavior of this function.
-   * @returns Promise of void if the operation function does not return a value,
-   *          or promise of an array containing outcomes from the operation function.
+   * @returns Promise of an array containing outcomes from the operation function.
    *          In the returned array containing outcomes, each element is either the fulfilled result, or the rejected error/reason.
    */
   static async inParallel<Data, Result, TError = Result>(
@@ -352,6 +386,10 @@ export const repeat = PromiseUtils.repeat;
  * See {@link PromiseUtils.withRetry} for full documentation.
  */
 export const withRetry = PromiseUtils.withRetry;
+/**
+ * See {@link PromiseUtils.withConcurrency} for full documentation.
+ */
+export const withConcurrency = PromiseUtils.withConcurrency;
 /**
  * See {@link PromiseUtils.inParallel} for full documentation.
  */
