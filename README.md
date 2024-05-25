@@ -1,7 +1,18 @@
 # @handy-common-utils/promise-utils
 
-These Promise related utilities have 100% test coverage. The package is tiny because there is no dependency on any other package.
-Functions provided are `repeat`, `withRetry`, `inParallel`, `delayedResolve`, `delayedReject`, `timeoutResolve`, `timeoutReject`, `promiseState`, `synchronized`, etc.
+These Promise-related utilities boast 100% test coverage, ensuring robust reliability.
+The package, free of external dependencies, offers essential functions such as:
+
+- `repeat`: Executes an operation repeatedly, very useful to collect all results through pagination.
+- `withRetry`: Retries an operation until a specified condition is met.
+- `withConcurrency`: Executes multiple operations with specified level of concurrency, and abort remaining operations when an error happens.
+- `inParallel`: Executes multiple operations with specified level of concurrency, all operations are guaranteed to be executed regardless of any possible error.
+- `delayedResolve`: Creates a Promise that resolves after a specified delay.
+- `delayedReject`: Creates a Promise that rejects after a specified delay.
+- `timeoutResolve`: Applies a timeout to a Promise and resolves with a specified result if the timeout occurs.
+- `timeoutReject`: Applies a timeout to a Promise and rejects with a specified error/reason if the timeout occurs.
+- `promiseState`: Retrieves the state of a Promise.
+- `synchronized`: Provides mutual exclusion for concurrent operations using a lock mechanism, similar to `synchronized` in Java.
 
 [![Version](https://img.shields.io/npm/v/@handy-common-utils/promise-utils.svg)](https://npmjs.org/package/@handy-common-utils/promise-utils)
 [![Downloads/week](https://img.shields.io/npm/dw/@handy-common-utils/promise-utils.svg)](https://npmjs.org/package/@handy-common-utils/promise-utils)
@@ -59,7 +70,6 @@ const result2 = await withRetry(() => doSomething(), Array.from({length: 10}, (_
 const result3 = await withRetry(() => doSomething(), attempt => attempt <= 8 ? 1000 * Math.min(EXPONENTIAL_SEQUENCE[attempt - 1], 10) : undefined, err => err.statusCode === 429);
 statusCode === 429);
 
-// inParallel(...)
 // Capture errors in the returned array
 const attributesAndPossibleErrors = await PromiseUtils.inParallel(5, topicArns, async (topicArn) => {
   const topicAttributes = (await sns.getTopicAttributes({ TopicArn: topicArn }).promise()).Attributes!;
@@ -69,7 +79,7 @@ const attributesAndPossibleErrors = await PromiseUtils.inParallel(5, topicArns, 
 // Abort on the first error
 let results: Array<JobResult>;
 try {
-  results = await PromiseUtils.inParallel(100, jobs, async (job) => processor.process(job), { abortOnError: true });
+  results = await PromiseUtils.withConcurrency(100, jobs, async (job) => processor.process(job));
 } catch (error) {
   // handle the error
 }
