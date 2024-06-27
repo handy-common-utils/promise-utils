@@ -162,7 +162,7 @@ export abstract class PromiseUtils {
     jobs: Iterable<Data>,
     operation: (job: Data, index: number) => Promise<Result>,
   ): Promise<Array<Result>> {
-    return inParallel(concurrency, jobs, operation);
+    return inParallel(concurrency, jobs, operation, { abortOnError: true });
   }
 
   /**

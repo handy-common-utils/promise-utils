@@ -224,7 +224,7 @@ describe('PromiseUtils', () => {
         });
       });
     }
-    it('should abort on error', () => {
+    it('should abort on error', async () => {
       const DELAY = 3;
       const NUM = 30;
       const DATA: boolean[] = Array.from({ length: NUM });
@@ -236,6 +236,7 @@ describe('PromiseUtils', () => {
         return d ? PromiseUtils.delayedResolve(DELAY, d) : PromiseUtils.delayedReject(DELAY, `${d}`);
       });
       expect(promise).to.be.rejectedWith('false');
+      await promise.catch(() => null);
       expect(count).to.be.lessThan(NUM);
     });
   });
@@ -278,7 +279,7 @@ describe('PromiseUtils', () => {
         expect(results.slice(NUM / 2)).eql(DATA.slice(NUM / 2).map(d => `${d}`));
       });
     });
-    it('should abort on error if the options.abortOnError flag is true', () => {
+    it('should abort on error if the options.abortOnError flag is true', async () => {
       const DELAY = 3;
       const NUM = 30;
       const DATA: boolean[] = Array.from({ length: NUM });
@@ -290,7 +291,23 @@ describe('PromiseUtils', () => {
         return d ? PromiseUtils.delayedResolve(DELAY, d) : PromiseUtils.delayedReject(DELAY, `${d}`);
       }, { abortOnError: true });
       expect(promise).to.be.rejectedWith('false');
+      await promise.catch(() => null);
       expect(count).to.be.lessThan(NUM);
+    });
+    it('should not abort on error if the options.abortOnError flag is not set', async () => {
+      const DELAY = 3;
+      const NUM = 30;
+      const DATA: boolean[] = Array.from({ length: NUM });
+      DATA.fill(true, 0, NUM / 2);
+      DATA.fill(false, NUM / 2);
+      let count = 0;
+      const promise = PromiseUtils.inParallel(5, DATA, d => {
+        count ++;
+        return d ? PromiseUtils.delayedResolve(DELAY, d) : PromiseUtils.delayedReject(DELAY, `${d}`);
+      });
+      expect(promise).to.be.fulfilled;
+      await promise;
+      expect(count).to.equal(NUM);
     });
   });
   describe('timeoutResolve(...)', () => {
