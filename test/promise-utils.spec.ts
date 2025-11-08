@@ -4,7 +4,7 @@ import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 chai.use(chaiAsPromised);
 
-import { PromiseState, PromiseUtils } from '../src/promise-utils';
+import { PromiseState, PromiseUtils, cancellableDelayedReject, cancellableDelayedResolve } from '../src/promise-utils';
 
 const ALLOWED_DEVIATION = 20;
 
@@ -155,6 +155,62 @@ describe('PromiseUtils', () => {
               });
     });
   });
+  describe('cancellableDelayedResolve(...)', () => {
+    it('should resolve a value after specified time and expose stop()', () => {
+      const DELAY = 50;
+      const SUCC_RESULT = 'this is the success message';
+      const startTime = Date.now();
+      const { stop, promise } = cancellableDelayedResolve(DELAY, SUCC_RESULT);
+      // ensure stop exists
+      expect(typeof stop).to.eq('function');
+      return expect(promise).to.eventually.eq(SUCC_RESULT)
+              .then(() => {
+                expect(Math.abs(Date.now() - startTime - DELAY)).lt(ALLOWED_DEVIATION);
+              });
+    });
+
+    it('should allow cancellation before the timer fires (promise remains pending)', async () => {
+      const DELAY = 80;
+      const { stop, promise } = cancellableDelayedResolve(DELAY, 'will-not-happen');
+      stop();
+      // race the cancellable promise with a short delay; if cancelled, the short delay should win
+      const race = Promise.race([promise.then(() => 'resolved', () => 'rejected'), PromiseUtils.delayedResolve(30, 'still')]);
+      await expect(race).to.eventually.eq('still');
+    });
+
+    it('should not be cancelled if stop() is called during execution (after timer fired)', async () => {
+      const DELAY = 30;
+      let innerResolve: (v: any) => void;
+      const supplier = () => new Promise(res => { innerResolve = res; });
+      const { stop, promise } = cancellableDelayedResolve(DELAY, supplier);
+      // call stop shortly after the timer should have fired, but before we resolve the inner promise
+      setTimeout(() => stop(), DELAY + 10);
+      setTimeout(() => innerResolve('ok-during'), DELAY + 20);
+      await expect(promise).to.eventually.eq('ok-during');
+    });
+
+    it('calling stop() after the promise has settled is a no-op', async () => {
+      const DELAY = 20;
+      const { stop, promise } = cancellableDelayedResolve(DELAY, 'done');
+      await expect(promise).to.eventually.eq('done');
+      // call stop after settled
+      stop();
+      // wait a bit to ensure no unexpected change
+      await PromiseUtils.delayedResolve(30);
+      await expect(promise).to.eventually.eq('done');
+    });
+
+    it('calling stop() multiple times is safe (second call is ignored)', async () => {
+      const DELAY = 40;
+      const c = cancellableDelayedResolve(DELAY, 'multiple');
+      c.stop();
+      // second stop should be ignored and not throw
+      expect(() => c.stop()).not.to.throw();
+      // ensure it was canceled
+      const race = Promise.race([c.promise.then(() => 'resolved', () => 'rejected'), PromiseUtils.delayedResolve(30, 'still')]);
+      await expect(race).to.eventually.eq('still');
+    });
+  });
   describe('delayedReject(...)', () => {
     it('should reject with a reason after specified time', () => {
       const DELAY = 60;
@@ -195,6 +251,55 @@ describe('PromiseUtils', () => {
               .then(() => {
                 expect(Math.abs(Date.now() - startTime - DELAY)).lt(ALLOWED_DEVIATION);
               });
+    });
+  });
+  describe('cancellableDelayedReject(...)', () => {
+    it('should reject with a reason after specified time and expose stop()', () => {
+      const DELAY = 60;
+      const ERROR_MSG = 'this is the error message';
+      const startTime = Date.now();
+      const { stop, promise } = cancellableDelayedReject(DELAY, ERROR_MSG);
+      expect(typeof stop).to.eq('function');
+      return expect(promise).to.be.rejectedWith(ERROR_MSG)
+              .then(() => {
+                expect(Math.abs(Date.now() - startTime - DELAY)).lt(ALLOWED_DEVIATION);
+              });
+    });
+
+    it('should allow cancellation before the timer fires (promise remains pending)', async () => {
+      const DELAY = 80;
+      const { stop, promise } = cancellableDelayedReject(DELAY, 'will-not-happen');
+      stop();
+      const race = Promise.race([promise.then(() => 'resolved', () => 'rejected'), PromiseUtils.delayedResolve(30, 'still')]);
+      await expect(race).to.eventually.eq('still');
+    });
+
+    it('should not be cancelled if stop() is called during execution (after timer fired)', async () => {
+      const DELAY = 30;
+      let innerReject: (v: any) => void;
+      const supplier = () => new Promise((_res, rej) => { innerReject = rej; });
+      const { stop, promise } = cancellableDelayedReject(DELAY, supplier as any);
+      setTimeout(() => stop(), DELAY + 10);
+      setTimeout(() => innerReject('err-during'), DELAY + 20);
+      await expect(promise).to.be.rejectedWith('err-during');
+    });
+
+    it('calling stop() after the promise has settled is a no-op', async () => {
+      const DELAY = 20;
+      const { stop, promise } = cancellableDelayedReject(DELAY, 'done-err');
+      await expect(promise).to.be.rejectedWith('done-err');
+      stop();
+      await PromiseUtils.delayedResolve(30);
+      await expect(promise).to.be.rejectedWith('done-err');
+    });
+
+    it('calling stop() multiple times is safe (second call is ignored) for reject', async () => {
+      const DELAY = 40;
+      const c = cancellableDelayedReject(DELAY, 'multiple-err');
+      c.stop();
+      expect(() => c.stop()).not.to.throw();
+      const race = Promise.race([c.promise.then(() => 'resolved', () => 'rejected'), PromiseUtils.delayedResolve(30, 'still')]);
+      await expect(race).to.eventually.eq('still');
     });
   });
   describe('withConcurrency(...)', () => {

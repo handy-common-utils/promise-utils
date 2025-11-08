@@ -236,33 +236,126 @@ export abstract class PromiseUtils {
   }
 
   /**
+   * Creates a cancellable timer that will resolve after a specified number of milliseconds.
+   *
+   * The returned object contains:
+   * - `stop()` to cancel the scheduled resolution (if called before the timer fires). Calling
+   *   `stop()` prevents the promise from being settled by this timer.
+   * - `promise` which will resolve with the supplied `result` (or the value returned by the
+   *   `result` function) after `ms` milliseconds unless `stop()` is called first.
+   *
+   * Note: If the `result` is a function that returns a Promise, the returned `promise` will
+   * resolve with that Promise's resolution (i.e. it behaves like resolving with a PromiseLike).
+   *
+   * @param ms The number of milliseconds after which the scheduled resolution will occur.
+   * @param result The result to be resolved by the Promise, or a function that supplies the result.
+   * @returns An object with `stop()` and `promise`.
+   */
+  static cancellableDelayedResolve<T>(ms: number, result?: T | PromiseLike<T> | (() => (T | PromiseLike<T>))): { stop: () => void; promise: Promise<T> } {
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const promise = new Promise<T>(resolve => {
+      timer = setTimeout(() => {
+        timer = undefined;
+        if (stopped) return;
+        resolve(
+          typeof result === 'function' ? (result as (() => T | PromiseLike<T>))() : result as T | PromiseLike<T>,
+        );
+      }, ms);
+    });
+
+    const stop = () => {
+      if (stopped) return;
+      stopped = true;
+      if (timer !== undefined) {
+        clearTimeout(timer);
+        timer = undefined;
+      }
+    };
+
+    return { stop, promise };
+  }
+
+  /**
    * Creates a Promise that resolves after a specified number of milliseconds.
+   *
+   * The `result` argument may be:
+   * - a value to resolve with,
+   * - a PromiseLike whose resolution will be adopted by the returned Promise, or
+   * - a function which is invoked when the timer fires and may return a value or a PromiseLike.
+   *
+   * If `result` is a function, it is called when the timer elapses; if it returns a Promise,
+   * the returned Promise will adopt that Promise's outcome.
    *
    * @param ms The number of milliseconds after which the created Promise will resolve.
    * @param result The result to be resolved by the Promise, or a function that supplies the result.
-   * @returns A new Promise that resolves with the specified result after the specified delay.
+   * @returns A Promise that resolves with the specified result after the specified delay.
    */
   static delayedResolve<T>(ms: number, result?: T | PromiseLike<T> | (() => (T | PromiseLike<T>))): Promise<T> {
-    // eslint-disable-next-line no-promise-executor-return
-    return new Promise(resolve => setTimeout(() => resolve(
-      typeof result === 'function' ? (result as (() => T | PromiseLike<T>))() : result as T | PromiseLike<T>,
-    ), ms));
+    return PromiseUtils.cancellableDelayedResolve(ms, result).promise;
+  }
+
+  /**
+   * Creates a cancellable timer that will reject after a specified number of milliseconds.
+   *
+   * The returned object contains:
+   * - `stop()` to cancel the scheduled rejection (if called before the timer fires). Calling
+   *   `stop()` prevents the promise from being settled by this timer.
+   * - `promise` which will reject with the supplied `reason` (or the value returned by the
+   *   `reason` function) after `ms` milliseconds unless `stop()` is called first.
+   *
+   * If the `reason` is a PromiseLike that rejects, its rejection value will be used as the rejection reason.
+   *
+   * @param ms The number of milliseconds after which the scheduled rejection will occur.
+   * @param reason The reason for the rejection, or a function that supplies the reason.
+   * @returns An object with `stop()` and `promise`.
+   */
+  static cancellableDelayedReject<T = never, R = any>(ms: number, reason: R | PromiseLike<R> | (() => R|PromiseLike<R>)): { stop: () => void; promise: Promise<T> } {
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    const promise = new Promise<T>((_resolve, reject) => {
+      timer = setTimeout(() => {
+        timer = undefined;
+        if (stopped) return;
+        const r = typeof reason === 'function' ? (reason as (() => R|PromiseLike<R>))() : reason as R|PromiseLike<R>;
+        // Resolve the possibly-PromiseLike `r` and reject the outer promise with either
+        // the resolved value or the rejection reason of `r`.
+        Promise.resolve(r).then(reject, reject);
+      }, ms);
+    });
+
+    const stop = () => {
+      if (stopped) return;
+      stopped = true;
+      if (timer !== undefined) {
+        clearTimeout(timer);
+        timer = undefined;
+      }
+    };
+
+    return { stop, promise };
   }
 
   /**
    * Creates a Promise that rejects after a specified number of milliseconds.
    *
+   * The `reason` argument may be:
+   * - a value to reject with,
+   * - a PromiseLike whose rejection will be adopted by the returned Promise, or
+   * - a function which is invoked when the timer fires and may return a value or a PromiseLike.
+   *
+   * If `reason` is a function, it is called when the timer elapses; if it returns a Promise,
+   * the returned Promise will reject with that Promise's rejection reason (or reject with the
+   * returned value if it resolves).
+   *
    * @param ms The number of milliseconds after which the created Promise will reject.
    * @param reason The reason for the rejection, or a function that supplies the reason.
-   *               If the reason is a rejected Promise, the outcome of it will be the rejection reason of the returned Promise.
-   * @returns A new Promise that rejects with the specified reason after the specified delay.
+   * @returns A Promise that rejects with the specified reason after the specified delay.
    */
   static delayedReject<T = never, R = any>(ms: number, reason: R | PromiseLike<R> | (() => R|PromiseLike<R>)): Promise<T> {
-    // eslint-disable-next-line no-promise-executor-return
-    return new Promise((_resolve, reject) => setTimeout(() => {
-      const r = typeof reason === 'function' ? (reason as (() => R|PromiseLike<R>))() : reason as R|PromiseLike<R>;
-      Promise.resolve(r).catch(error => error).then(r => reject(r));
-    }, ms));
+    return PromiseUtils.cancellableDelayedReject(ms, reason).promise;
   }
 
   /**
@@ -516,6 +609,14 @@ export const delayedResolve = PromiseUtils.delayedResolve;
  * See {@link PromiseUtils.delayedReject} for full documentation.
  */
 export const delayedReject = PromiseUtils.delayedReject;
+/**
+ * See {@link PromiseUtils.cancellableDelayedResolve} for full documentation.
+ */
+export const cancellableDelayedResolve = PromiseUtils.cancellableDelayedResolve;
+/**
+ * See {@link PromiseUtils.cancellableDelayedReject} for full documentation.
+ */
+export const cancellableDelayedReject = PromiseUtils.cancellableDelayedReject;
 /**
  * See {@link PromiseUtils.timeoutResolve} for full documentation.
  */
