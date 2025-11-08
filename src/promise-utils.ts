@@ -586,59 +586,184 @@ export abstract class PromiseUtils {
 }
 
 /**
- * See {@link PromiseUtils.repeat} for full documentation.
+ * Executes an operation repeatedly and collects all the results.
+ * This function is very useful for many scenarios, such like client-side pagination.
+ *
+ * @param operation A function that takes a parameter as input and returns a result. Typically, the parameter has optional fields to control paging.
+ * @param nextParameter A function for calculating the next parameter from the operation result. Normally, this parameter controls paging. This function should return null when no further invocation of the operation function is desired. If further invocation is desired, the return value of this function can be a Promise or a non-Promise value.
+ * @param collect A function for merging the operation result into the collection.
+ * @param initialCollection The initial collection, which will be the first argument passed to the first invocation of the collect function.
+ * @param initialParameter The parameter for the first operation.
+ * @returns A promise that resolves to a collection of all the results returned by the operation function.
  */
 export const repeat = PromiseUtils.repeat;
 /**
- * See {@link PromiseUtils.withRetry} for full documentation.
+ * Repeatedly performs an operation until a specified criteria is met.
+ *
+ * @param operation A function that outputs a Promise result. Typically, the operation does not use its arguments.
+ * @param backoff An array of retry backoff periods (in milliseconds) or a function for calculating them.
+ * @param shouldRetry A predicate function for deciding whether another call to the operation should occur.
+ * @returns A promise of the operation result, potentially with retries applied.
  */
 export const withRetry = PromiseUtils.withRetry;
 /**
- * See {@link PromiseUtils.withConcurrency} for full documentation.
+ * Executes multiple jobs/operations with a specified level of concurrency.
+ *
+ * @param concurrency The number of jobs/operations to run concurrently.
+ * @param jobs The job data to be processed. This function can handle an infinite or unknown number of elements safely.
+ * @param operation The function that processes job data asynchronously.
+ * @returns A promise that resolves to an array containing the results from the operation function.
+ *          The results in the returned array are in the same order as the corresponding elements in the jobs array.
  */
 export const withConcurrency = PromiseUtils.withConcurrency;
 /**
- * See {@link PromiseUtils.inParallel} for full documentation.
+ * Executes multiple jobs/operations in parallel. By default, all operations are executed regardless of any failures.
+ * In most cases, using withConcurrency might be more convenient.
+ *
+ * By default, this function does not throw or reject an error when any job/operation fails.
+ * Errors from operations are returned alongside results in the returned array.
+ * This function only resolves when all jobs/operations are settled (either resolved or rejected).
+ *
+ * If options.abortOnError is set to true, this function throws (or rejects with) an error immediately when any job/operation fails.
+ * In this mode, some jobs/operations may not be executed if one fails.
+ *
+ * @param parallelism The number of jobs/operations to run concurrently.
+ * @param jobs The job data to be processed. This function can safely handle an infinite or unknown number of elements.
+ * @param operation The function that processes job data asynchronously.
+ * @param options Options to control the function's behavior.
+ * @param options.abortOnError If true, the function aborts and throws an error on the first failed operation.
+ * @returns A promise that resolves to an array containing the results of the operations.
+ *  Each element is either a fulfilled result or a rejected error/reason.
+ *  The results or errors in the returned array are in the same order as the corresponding elements in the jobs array.
  */
 export const inParallel = PromiseUtils.inParallel;
 /**
- * See {@link PromiseUtils.delayedResolve} for full documentation.
+ * Creates a Promise that resolves after a specified number of milliseconds.
+ *
+ * The result argument may be:
+ * - a value to resolve with,
+ * - a PromiseLike whose resolution will be adopted by the returned Promise, or
+ * - a function which is invoked when the timer fires and may return a value or a PromiseLike.
+ *
+ * If result is a function, it is called when the timer elapses; if it returns a Promise,
+ * the returned Promise will adopt that Promise's outcome.
+ *
+ * @param ms The number of milliseconds after which the created Promise will resolve.
+ * @param result The result to be resolved by the Promise, or a function that supplies the result.
+ * @returns A Promise that resolves with the specified result after the specified delay.
  */
 export const delayedResolve = PromiseUtils.delayedResolve;
 /**
- * See {@link PromiseUtils.delayedReject} for full documentation.
+ * Creates a Promise that rejects after a specified number of milliseconds.
+ *
+ * The reason argument may be:
+ * - a value to reject with,
+ * - a PromiseLike whose rejection will be adopted by the returned Promise, or
+ * - a function which is invoked when the timer fires and may return a value or a PromiseLike.
+ *
+ * If reason is a function, it is called when the timer elapses; if it returns a Promise,
+ * the returned Promise will reject with that Promise's rejection reason (or reject with the
+ * returned value if it resolves).
+ *
+ * @param ms The number of milliseconds after which the created Promise will reject.
+ * @param reason The reason for the rejection, or a function that supplies the reason.
+ * @returns A Promise that rejects with the specified reason after the specified delay.
  */
 export const delayedReject = PromiseUtils.delayedReject;
 /**
- * See {@link PromiseUtils.cancellableDelayedResolve} for full documentation.
+ * Creates a cancellable timer that will resolve after a specified number of milliseconds.
+ *
+ * The returned object contains:
+ * - stop() to cancel the scheduled resolution (if called before the timer fires). Calling
+ *   stop() prevents the promise from being settled by this timer.
+ * - promise which will resolve with the supplied result (or the value returned by the
+ *   result function) after ms milliseconds unless stop() is called first.
+ *
+ * If the result is a PromiseLike, its resolution value will be used as the resolved value.
+ *
+ * @param ms The number of milliseconds after which the scheduled resolution will occur.
+ * @param result The result to be resolved by the Promise, or a function that supplies the result.
+ * @returns An object with stop() and promise.
  */
 export const cancellableDelayedResolve = PromiseUtils.cancellableDelayedResolve;
 /**
- * See {@link PromiseUtils.cancellableDelayedReject} for full documentation.
+ * Creates a cancellable timer that will reject after a specified number of milliseconds.
+ *
+ * The returned object contains:
+ * - stop() to cancel the scheduled rejection (if called before the timer fires). Calling
+ *   stop() prevents the promise from being settled by this timer.
+ * - promise which will reject with the supplied reason (or the value returned by the
+ *   reason function) after ms milliseconds unless stop() is called first.
+ *
+ * If the reason is a PromiseLike that rejects, its rejection value will be used as the rejection reason.
+ *
+ * @param ms The number of milliseconds after which the scheduled rejection will occur.
+ * @param reason The reason for the rejection, or a function that supplies the reason.
+ * @returns An object with stop() and promise.
  */
 export const cancellableDelayedReject = PromiseUtils.cancellableDelayedReject;
 /**
- * See {@link PromiseUtils.timeoutResolve} for full documentation.
+ * Applies a timeout to a Promise or a function that returns a Promise.
+ * If the timeout occurs, the returned Promise resolves to the specified result.
+ * If the timeout does not occur, the returned Promise resolves or rejects based on the outcome of the original Promise.
+ * If the result parameter is a function and the timeout does not occur, the function will not be called.
+ * Note: The rejection of the operation parameter is not handled by this function. 
+ * You may want to handle it outside this function to avoid warnings like "(node:4330) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously."
+ *
+ * @param operation The original Promise or a function that returns a Promise to which the timeout will be applied.
+ * @param ms The number of milliseconds for the timeout.
+ * @param result The result to resolve with if the timeout occurs, or a function that supplies the result.
+ * @returns A new Promise that resolves to the specified result if the timeout occurs.
  */
 export const timeoutResolve = PromiseUtils.timeoutResolve;
 /**
- * See {@link PromiseUtils.timeoutReject} for full documentation.
+ * Applies a timeout to a Promise or a function that returns a Promise.
+ * If the timeout occurs, the returned Promise rejects with the specified reason.
+ * If the timeout does not occur, the returned Promise resolves or rejects based on the outcome of the original Promise.
+ * If the rejectReason parameter is a function and the timeout does not occur, the function will not be called.
+ * Note: The rejection of the operation parameter is not handled by this function. You may want to handle it outside this function to avoid warnings like "(node:4330) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously."
+ *
+ * @param operation The original Promise or a function that returns a Promise to which the timeout will be applied.
+ * @param ms The number of milliseconds for the timeout.
+ * @param rejectReason The reason to reject with if the timeout occurs, or a function that supplies the reason.
+ * @returns A new Promise that rejects with the specified reason if the timeout occurs.
  */
 export const timeoutReject = PromiseUtils.timeoutReject;
 /**
- * See {@link PromiseUtils.synchronized} for full documentation.
+ * Provides mutual exclusion similar to synchronized in Java.
+ * Ensures no concurrent execution of any operation function associated with the same lock.
+ * The operation function has access to the state (when synchronized is called),
+ * settledState (when the operation function is called),
+ * and result (either the fulfilled result or the rejected reason) of the previous operation.
+ * If there is no previous invocation, state, settledState, and result will all be undefined.
+ *
+ * @param lock The object (such as a string, a number, or this in a class) used to identify the lock.
+ * @param operation The function that performs the computation and returns a Promise.
+ * @returns The result of the operation function.
  */
 export const synchronized = PromiseUtils.synchronized;
 /**
- * See {@link PromiseUtils.synchronised} for full documentation.
+ * This is just another spelling of synchronized.
+ * @param lock The object (such as a string, a number, or this in a class) used to identify the lock.
+ * @param operation The function that performs the computation and returns a Promise.
+ * @returns The result of the operation function.
  */
 export const synchronised = PromiseUtils.synchronised;
 /**
- * See {@link PromiseUtils.promiseState} for full documentation.
+ * Retrieves the state of the specified Promise.
+ * Note: The returned value is a Promise that resolves immediately.
+ *
+ * @param p The Promise whose state is to be determined.
+ * @returns A Promise that resolves immediately with the state of the input Promise.
  */
 export const promiseState = PromiseUtils.promiseState;
 
 /**
- * See {@link PromiseUtils.runPeriodically} for full documentation.
+ * Runs an operation periodically with configurable intervals and stopping conditions.
+ *
+ * @param operation The operation to run periodically.
+ * @param interval The interval (ms), array of intervals, or function returning interval per iteration.
+ * @param options Options for maxExecutions, maxDurationMs, and schedule type.
+ * @returns An object with stop() and done Promise which resolves when the periodic runner stops (or rejects if the operation errors).
  */
 export const runPeriodically = PromiseUtils.runPeriodically;
