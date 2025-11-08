@@ -160,11 +160,19 @@ PromiseUtils.withRetry(() => doSomething(), FIBONACCI_SEQUENCE.slice(0, 5).map(n
 
 ### Functions
 
-#### delayedReject
+#### cancellableDelayedReject
 
-▸ **delayedReject**\<`T`, `R`\>(`ms`, `reason`): `Promise`\<`T`\>
+▸ **cancellableDelayedReject**\<`T`, `R`\>(`ms`, `reason`): `Object`
 
-See [delayedReject](#delayedreject) for full documentation.
+Creates a cancellable timer that will reject after a specified number of milliseconds.
+
+The returned object contains:
+- stop() to cancel the scheduled rejection (if called before the timer fires). Calling
+  stop() prevents the promise from being settled by this timer.
+- promise which will reject with the supplied reason (or the value returned by the
+  reason function) after ms milliseconds unless stop() is called first.
+
+If the reason is a PromiseLike that rejects, its rejection value will be used as the rejection reason.
 
 ##### Type parameters
 
@@ -175,22 +183,37 @@ See [delayedReject](#delayedreject) for full documentation.
 
 ##### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `ms` | `number` |
-| `reason` | `R` \| `PromiseLike`\<`R`\> \| () => `R` \| `PromiseLike`\<`R`\> |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `ms` | `number` | The number of milliseconds after which the scheduled rejection will occur. |
+| `reason` | `R` \| `PromiseLike`\<`R`\> \| () => `R` \| `PromiseLike`\<`R`\> | The reason for the rejection, or a function that supplies the reason. |
 
 ##### Returns
 
-`Promise`\<`T`\>
+`Object`
+
+An object with stop() and promise.
+
+| Name | Type |
+| :------ | :------ |
+| `promise` | `Promise`\<`T`\> |
+| `stop` | () => `void` |
 
 ___
 
-#### delayedResolve
+#### cancellableDelayedResolve
 
-▸ **delayedResolve**\<`T`\>(`ms`, `result?`): `Promise`\<`T`\>
+▸ **cancellableDelayedResolve**\<`T`\>(`ms`, `result?`): `Object`
 
-See [delayedResolve](#delayedresolve) for full documentation.
+Creates a cancellable timer that will resolve after a specified number of milliseconds.
+
+The returned object contains:
+- stop() to cancel the scheduled resolution (if called before the timer fires). Calling
+  stop() prevents the promise from being settled by this timer.
+- promise which will resolve with the supplied result (or the value returned by the
+  result function) after ms milliseconds unless stop() is called first.
+
+If the result is a PromiseLike, its resolution value will be used as the resolved value.
 
 ##### Type parameters
 
@@ -200,14 +223,93 @@ See [delayedResolve](#delayedresolve) for full documentation.
 
 ##### Parameters
 
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `ms` | `number` | The number of milliseconds after which the scheduled resolution will occur. |
+| `result?` | `T` \| `PromiseLike`\<`T`\> \| () => `T` \| `PromiseLike`\<`T`\> | The result to be resolved by the Promise, or a function that supplies the result. |
+
+##### Returns
+
+`Object`
+
+An object with stop() and promise.
+
 | Name | Type |
 | :------ | :------ |
-| `ms` | `number` |
-| `result?` | `T` \| `PromiseLike`\<`T`\> \| () => `T` \| `PromiseLike`\<`T`\> |
+| `promise` | `Promise`\<`T`\> |
+| `stop` | () => `void` |
+
+___
+
+#### delayedReject
+
+▸ **delayedReject**\<`T`, `R`\>(`ms`, `reason`): `Promise`\<`T`\>
+
+Creates a Promise that rejects after a specified number of milliseconds.
+
+The reason argument may be:
+- a value to reject with,
+- a PromiseLike whose rejection will be adopted by the returned Promise, or
+- a function which is invoked when the timer fires and may return a value or a PromiseLike.
+
+If reason is a function, it is called when the timer elapses; if it returns a Promise,
+the returned Promise will reject with that Promise's rejection reason (or reject with the
+returned value if it resolves).
+
+##### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `T` | `never` |
+| `R` | `any` |
+
+##### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `ms` | `number` | The number of milliseconds after which the created Promise will reject. |
+| `reason` | `R` \| `PromiseLike`\<`R`\> \| () => `R` \| `PromiseLike`\<`R`\> | The reason for the rejection, or a function that supplies the reason. |
 
 ##### Returns
 
 `Promise`\<`T`\>
+
+A Promise that rejects with the specified reason after the specified delay.
+
+___
+
+#### delayedResolve
+
+▸ **delayedResolve**\<`T`\>(`ms`, `result?`): `Promise`\<`T`\>
+
+Creates a Promise that resolves after a specified number of milliseconds.
+
+The result argument may be:
+- a value to resolve with,
+- a PromiseLike whose resolution will be adopted by the returned Promise, or
+- a function which is invoked when the timer fires and may return a value or a PromiseLike.
+
+If result is a function, it is called when the timer elapses; if it returns a Promise,
+the returned Promise will adopt that Promise's outcome.
+
+##### Type parameters
+
+| Name |
+| :------ |
+| `T` |
+
+##### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `ms` | `number` | The number of milliseconds after which the created Promise will resolve. |
+| `result?` | `T` \| `PromiseLike`\<`T`\> \| () => `T` \| `PromiseLike`\<`T`\> | The result to be resolved by the Promise, or a function that supplies the result. |
+
+##### Returns
+
+`Promise`\<`T`\>
+
+A Promise that resolves with the specified result after the specified delay.
 
 ___
 
@@ -215,7 +317,15 @@ ___
 
 ▸ **inParallel**\<`Data`, `Result`, `TError`\>(`parallelism`, `jobs`, `operation`, `options?`): `Promise`\<(`Result` \| `TError`)[]\>
 
-See [inParallel](#inparallel) for full documentation.
+Executes multiple jobs/operations in parallel. By default, all operations are executed regardless of any failures.
+In most cases, using withConcurrency might be more convenient.
+
+By default, this function does not throw or reject an error when any job/operation fails.
+Errors from operations are returned alongside results in the returned array.
+This function only resolves when all jobs/operations are settled (either resolved or rejected).
+
+If options.abortOnError is set to true, this function throws (or rejects with) an error immediately when any job/operation fails.
+In this mode, some jobs/operations may not be executed if one fails.
 
 ##### Type parameters
 
@@ -227,17 +337,21 @@ See [inParallel](#inparallel) for full documentation.
 
 ##### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `parallelism` | `number` |
-| `jobs` | `Iterable`\<`Data`\> |
-| `operation` | (`job`: `Data`, `index`: `number`) => `Promise`\<`Result`\> |
-| `options?` | `Object` |
-| `options.abortOnError` | `boolean` |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `parallelism` | `number` | The number of jobs/operations to run concurrently. |
+| `jobs` | `Iterable`\<`Data`\> | The job data to be processed. This function can safely handle an infinite or unknown number of elements. |
+| `operation` | (`job`: `Data`, `index`: `number`) => `Promise`\<`Result`\> | The function that processes job data asynchronously. |
+| `options?` | `Object` | Options to control the function's behavior. |
+| `options.abortOnError` | `boolean` | If true, the function aborts and throws an error on the first failed operation. |
 
 ##### Returns
 
 `Promise`\<(`Result` \| `TError`)[]\>
+
+A promise that resolves to an array containing the results of the operations.
+ Each element is either a fulfilled result or a rejected error/reason.
+ The results or errors in the returned array are in the same order as the corresponding elements in the jobs array.
 
 ___
 
@@ -245,17 +359,20 @@ ___
 
 ▸ **promiseState**(`p`): `Promise`\<[`PromiseState`](#enumspromisestatemd)\>
 
-See [promiseState](#promisestate) for full documentation.
+Retrieves the state of the specified Promise.
+Note: The returned value is a Promise that resolves immediately.
 
 ##### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `p` | `Promise`\<`any`\> |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `p` | `Promise`\<`any`\> | The Promise whose state is to be determined. |
 
 ##### Returns
 
 `Promise`\<[`PromiseState`](#enumspromisestatemd)\>
+
+A Promise that resolves immediately with the state of the input Promise.
 
 ___
 
@@ -263,7 +380,8 @@ ___
 
 ▸ **repeat**\<`Result`, `Param`, `Collection`\>(`operation`, `nextParameter`, `collect`, `initialCollection`, `initialParameter?`): `Promise`\<`Collection`\>
 
-See [repeat](#repeat) for full documentation.
+Executes an operation repeatedly and collects all the results.
+This function is very useful for many scenarios, such like client-side pagination.
 
 ##### Type parameters
 
@@ -275,17 +393,55 @@ See [repeat](#repeat) for full documentation.
 
 ##### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `operation` | (`parameter`: `Partial`\<`Param`\>) => `Promise`\<`Result`\> |
-| `nextParameter` | (`response`: `Result`) => ``null`` \| `Partial`\<`Param`\> \| `Promise`\<`Partial`\<`Param`\>\> |
-| `collect` | (`collection`: `Collection`, `result`: `Result`) => `Collection` |
-| `initialCollection` | `Collection` |
-| `initialParameter` | `Partial`\<`Param`\> |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `operation` | (`parameter`: `Partial`\<`Param`\>) => `Promise`\<`Result`\> | A function that takes a parameter as input and returns a result. Typically, the parameter has optional fields to control paging. |
+| `nextParameter` | (`response`: `Result`) => ``null`` \| `Partial`\<`Param`\> \| `Promise`\<`Partial`\<`Param`\>\> | A function for calculating the next parameter from the operation result. Normally, this parameter controls paging. This function should return null when no further invocation of the operation function is desired. If further invocation is desired, the return value of this function can be a Promise or a non-Promise value. |
+| `collect` | (`collection`: `Collection`, `result`: `Result`) => `Collection` | A function for merging the operation result into the collection. |
+| `initialCollection` | `Collection` | The initial collection, which will be the first argument passed to the first invocation of the collect function. |
+| `initialParameter` | `Partial`\<`Param`\> | The parameter for the first operation. |
 
 ##### Returns
 
 `Promise`\<`Collection`\>
+
+A promise that resolves to a collection of all the results returned by the operation function.
+
+___
+
+#### runPeriodically
+
+▸ **runPeriodically**\<`T`\>(`operation`, `interval`, `options?`): `Object`
+
+Runs an operation periodically with configurable intervals and stopping conditions.
+
+##### Type parameters
+
+| Name |
+| :------ |
+| `T` |
+
+##### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `operation` | (`iteration`: `number`) => `T` \| `Promise`\<`T`\> | The operation to run periodically. |
+| `interval` | `number` \| `number`[] \| (`iteration`: `number`) => `undefined` \| `number` | The interval (ms), array of intervals, or function returning interval per iteration. |
+| `options?` | `Object` | Options for maxExecutions, maxDurationMs, and schedule type. |
+| `options.maxDurationMs?` | `number` | - |
+| `options.maxExecutions?` | `number` | - |
+| `options.schedule?` | ``"delayAfterEnd"`` \| ``"delayBetweenStarts"`` | - |
+
+##### Returns
+
+`Object`
+
+An object with stop() and done Promise which resolves when the periodic runner stops (or rejects if the operation errors).
+
+| Name | Type |
+| :------ | :------ |
+| `done` | `Promise`\<`void`\> |
+| `stop` | () => `void` |
 
 ___
 
@@ -293,7 +449,7 @@ ___
 
 ▸ **synchronised**\<`T`\>(`lock`, `operation`): `Promise`\<`T`\>
 
-See [synchronised](#synchronised) for full documentation.
+This is just another spelling of synchronized.
 
 ##### Type parameters
 
@@ -303,14 +459,16 @@ See [synchronised](#synchronised) for full documentation.
 
 ##### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `lock` | `any` |
-| `operation` | (`previousState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousSettledState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousResult`: `any`) => `Promise`\<`T`\> |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `lock` | `any` | The object (such as a string, a number, or this in a class) used to identify the lock. |
+| `operation` | (`previousState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousSettledState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousResult`: `any`) => `Promise`\<`T`\> | The function that performs the computation and returns a Promise. |
 
 ##### Returns
 
 `Promise`\<`T`\>
+
+The result of the operation function.
 
 ___
 
@@ -318,7 +476,12 @@ ___
 
 ▸ **synchronized**\<`T`\>(`lock`, `operation`): `Promise`\<`T`\>
 
-See [synchronized](#synchronized) for full documentation.
+Provides mutual exclusion similar to synchronized in Java.
+Ensures no concurrent execution of any operation function associated with the same lock.
+The operation function has access to the state (when synchronized is called),
+settledState (when the operation function is called),
+and result (either the fulfilled result or the rejected reason) of the previous operation.
+If there is no previous invocation, state, settledState, and result will all be undefined.
 
 ##### Type parameters
 
@@ -328,14 +491,16 @@ See [synchronized](#synchronized) for full documentation.
 
 ##### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `lock` | `any` |
-| `operation` | (`previousState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousSettledState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousResult`: `any`) => `Promise`\<`T`\> |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `lock` | `any` | The object (such as a string, a number, or this in a class) used to identify the lock. |
+| `operation` | (`previousState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousSettledState`: `undefined` \| [`PromiseState`](#enumspromisestatemd), `previousResult`: `any`) => `Promise`\<`T`\> | The function that performs the computation and returns a Promise. |
 
 ##### Returns
 
 `Promise`\<`T`\>
+
+The result of the operation function.
 
 ___
 
@@ -343,7 +508,11 @@ ___
 
 ▸ **timeoutReject**\<`T`, `R`\>(`operation`, `ms`, `rejectReason`): `Promise`\<`T`\>
 
-See [timeoutReject](#timeoutreject) for full documentation.
+Applies a timeout to a Promise or a function that returns a Promise.
+If the timeout occurs, the returned Promise rejects with the specified reason.
+If the timeout does not occur, the returned Promise resolves or rejects based on the outcome of the original Promise.
+If the rejectReason parameter is a function and the timeout does not occur, the function will not be called.
+Note: The rejection of the operation parameter is not handled by this function. You may want to handle it outside this function to avoid warnings like "(node:4330) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously."
 
 ##### Type parameters
 
@@ -354,15 +523,17 @@ See [timeoutReject](#timeoutreject) for full documentation.
 
 ##### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `operation` | `Promise`\<`T`\> \| () => `Promise`\<`T`\> |
-| `ms` | `number` |
-| `rejectReason` | `R` \| `PromiseLike`\<`R`\> \| () => `R` \| `PromiseLike`\<`R`\> |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `operation` | `Promise`\<`T`\> \| () => `Promise`\<`T`\> | The original Promise or a function that returns a Promise to which the timeout will be applied. |
+| `ms` | `number` | The number of milliseconds for the timeout. |
+| `rejectReason` | `R` \| `PromiseLike`\<`R`\> \| () => `R` \| `PromiseLike`\<`R`\> | The reason to reject with if the timeout occurs, or a function that supplies the reason. |
 
 ##### Returns
 
 `Promise`\<`T`\>
+
+A new Promise that rejects with the specified reason if the timeout occurs.
 
 ___
 
@@ -370,7 +541,12 @@ ___
 
 ▸ **timeoutResolve**\<`T`\>(`operation`, `ms`, `result?`): `Promise`\<`T`\>
 
-See [timeoutResolve](#timeoutresolve) for full documentation.
+Applies a timeout to a Promise or a function that returns a Promise.
+If the timeout occurs, the returned Promise resolves to the specified result.
+If the timeout does not occur, the returned Promise resolves or rejects based on the outcome of the original Promise.
+If the result parameter is a function and the timeout does not occur, the function will not be called.
+Note: The rejection of the operation parameter is not handled by this function. 
+You may want to handle it outside this function to avoid warnings like "(node:4330) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously."
 
 ##### Type parameters
 
@@ -380,15 +556,17 @@ See [timeoutResolve](#timeoutresolve) for full documentation.
 
 ##### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `operation` | `Promise`\<`T`\> \| () => `Promise`\<`T`\> |
-| `ms` | `number` |
-| `result?` | `T` \| `PromiseLike`\<`T`\> \| () => `T` \| `PromiseLike`\<`T`\> |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `operation` | `Promise`\<`T`\> \| () => `Promise`\<`T`\> | The original Promise or a function that returns a Promise to which the timeout will be applied. |
+| `ms` | `number` | The number of milliseconds for the timeout. |
+| `result?` | `T` \| `PromiseLike`\<`T`\> \| () => `T` \| `PromiseLike`\<`T`\> | The result to resolve with if the timeout occurs, or a function that supplies the result. |
 
 ##### Returns
 
 `Promise`\<`T`\>
+
+A new Promise that resolves to the specified result if the timeout occurs.
 
 ___
 
@@ -396,7 +574,7 @@ ___
 
 ▸ **withConcurrency**\<`Data`, `Result`\>(`concurrency`, `jobs`, `operation`): `Promise`\<`Result`[]\>
 
-See [withConcurrency](#withconcurrency) for full documentation.
+Executes multiple jobs/operations with a specified level of concurrency.
 
 ##### Type parameters
 
@@ -407,15 +585,18 @@ See [withConcurrency](#withconcurrency) for full documentation.
 
 ##### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `concurrency` | `number` |
-| `jobs` | `Iterable`\<`Data`\> |
-| `operation` | (`job`: `Data`, `index`: `number`) => `Promise`\<`Result`\> |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `concurrency` | `number` | The number of jobs/operations to run concurrently. |
+| `jobs` | `Iterable`\<`Data`\> | The job data to be processed. This function can handle an infinite or unknown number of elements safely. |
+| `operation` | (`job`: `Data`, `index`: `number`) => `Promise`\<`Result`\> | The function that processes job data asynchronously. |
 
 ##### Returns
 
 `Promise`\<`Result`[]\>
+
+A promise that resolves to an array containing the results from the operation function.
+         The results in the returned array are in the same order as the corresponding elements in the jobs array.
 
 ___
 
@@ -423,7 +604,7 @@ ___
 
 ▸ **withRetry**\<`Result`, `TError`\>(`operation`, `backoff`, `shouldRetry?`): `Promise`\<`Result`\>
 
-See [withRetry](#withretry) for full documentation.
+Repeatedly performs an operation until a specified criteria is met.
 
 ##### Type parameters
 
@@ -434,15 +615,17 @@ See [withRetry](#withretry) for full documentation.
 
 ##### Parameters
 
-| Name | Type |
-| :------ | :------ |
-| `operation` | (`attempt`: `number`, `previousResult`: `undefined` \| `Result`, `previousError`: `undefined` \| `TError`) => `Promise`\<`Result`\> |
-| `backoff` | `number`[] \| (`attempt`: `number`, `previousResult`: `undefined` \| `Result`, `previousError`: `undefined` \| `TError`) => `undefined` \| `number` |
-| `shouldRetry` | (`previousError`: `undefined` \| `TError`, `previousResult`: `undefined` \| `Result`, `attempt`: `number`) => `boolean` |
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `operation` | (`attempt`: `number`, `previousResult`: `undefined` \| `Result`, `previousError`: `undefined` \| `TError`) => `Promise`\<`Result`\> | A function that outputs a Promise result. Typically, the operation does not use its arguments. |
+| `backoff` | `number`[] \| (`attempt`: `number`, `previousResult`: `undefined` \| `Result`, `previousError`: `undefined` \| `TError`) => `undefined` \| `number` | An array of retry backoff periods (in milliseconds) or a function for calculating them. |
+| `shouldRetry` | (`previousError`: `undefined` \| `TError`, `previousResult`: `undefined` \| `Result`, `attempt`: `number`) => `boolean` | A predicate function for deciding whether another call to the operation should occur. |
 
 ##### Returns
 
 `Promise`\<`Result`\>
+
+A promise of the operation result, potentially with retries applied.
 
 ## Classes
 
@@ -459,11 +642,102 @@ See [withRetry](#withretry) for full documentation.
 
 #### Methods
 
+##### cancellableDelayedReject
+
+▸ `Static` **cancellableDelayedReject**\<`T`, `R`\>(`ms`, `reason`): `Object`
+
+Creates a cancellable timer that will reject after a specified number of milliseconds.
+
+The returned object contains:
+- `stop()` to cancel the scheduled rejection (if called before the timer fires). Calling
+  `stop()` prevents the promise from being settled by this timer.
+- `promise` which will reject with the supplied `reason` (or the value returned by the
+  `reason` function) after `ms` milliseconds unless `stop()` is called first.
+
+If the `reason` is a PromiseLike that rejects, its rejection value will be used as the rejection reason.
+
+###### Type parameters
+
+| Name | Type |
+| :------ | :------ |
+| `T` | `never` |
+| `R` | `any` |
+
+###### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `ms` | `number` | The number of milliseconds after which the scheduled rejection will occur. |
+| `reason` | `R` \| `PromiseLike`\<`R`\> \| () => `R` \| `PromiseLike`\<`R`\> | The reason for the rejection, or a function that supplies the reason. |
+
+###### Returns
+
+`Object`
+
+An object with `stop()` and `promise`.
+
+| Name | Type |
+| :------ | :------ |
+| `promise` | `Promise`\<`T`\> |
+| `stop` | () => `void` |
+
+___
+
+##### cancellableDelayedResolve
+
+▸ `Static` **cancellableDelayedResolve**\<`T`\>(`ms`, `result?`): `Object`
+
+Creates a cancellable timer that will resolve after a specified number of milliseconds.
+
+The returned object contains:
+- `stop()` to cancel the scheduled resolution (if called before the timer fires). Calling
+  `stop()` prevents the promise from being settled by this timer.
+- `promise` which will resolve with the supplied `result` (or the value returned by the
+  `result` function) after `ms` milliseconds unless `stop()` is called first.
+
+Note: If the `result` is a function that returns a Promise, the returned `promise` will
+resolve with that Promise's resolution (i.e. it behaves like resolving with a PromiseLike).
+
+###### Type parameters
+
+| Name |
+| :------ |
+| `T` |
+
+###### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `ms` | `number` | The number of milliseconds after which the scheduled resolution will occur. |
+| `result?` | `T` \| `PromiseLike`\<`T`\> \| () => `T` \| `PromiseLike`\<`T`\> | The result to be resolved by the Promise, or a function that supplies the result. |
+
+###### Returns
+
+`Object`
+
+An object with `stop()` and `promise`.
+
+| Name | Type |
+| :------ | :------ |
+| `promise` | `Promise`\<`T`\> |
+| `stop` | () => `void` |
+
+___
+
 ##### delayedReject
 
 ▸ `Static` **delayedReject**\<`T`, `R`\>(`ms`, `reason`): `Promise`\<`T`\>
 
 Creates a Promise that rejects after a specified number of milliseconds.
+
+The `reason` argument may be:
+- a value to reject with,
+- a PromiseLike whose rejection will be adopted by the returned Promise, or
+- a function which is invoked when the timer fires and may return a value or a PromiseLike.
+
+If `reason` is a function, it is called when the timer elapses; if it returns a Promise,
+the returned Promise will reject with that Promise's rejection reason (or reject with the
+returned value if it resolves).
 
 ###### Type parameters
 
@@ -477,13 +751,13 @@ Creates a Promise that rejects after a specified number of milliseconds.
 | Name | Type | Description |
 | :------ | :------ | :------ |
 | `ms` | `number` | The number of milliseconds after which the created Promise will reject. |
-| `reason` | `R` \| `PromiseLike`\<`R`\> \| () => `R` \| `PromiseLike`\<`R`\> | The reason for the rejection, or a function that supplies the reason. If the reason is a rejected Promise, the outcome of it will be the rejection reason of the returned Promise. |
+| `reason` | `R` \| `PromiseLike`\<`R`\> \| () => `R` \| `PromiseLike`\<`R`\> | The reason for the rejection, or a function that supplies the reason. |
 
 ###### Returns
 
 `Promise`\<`T`\>
 
-A new Promise that rejects with the specified reason after the specified delay.
+A Promise that rejects with the specified reason after the specified delay.
 
 ___
 
@@ -492,6 +766,14 @@ ___
 ▸ `Static` **delayedResolve**\<`T`\>(`ms`, `result?`): `Promise`\<`T`\>
 
 Creates a Promise that resolves after a specified number of milliseconds.
+
+The `result` argument may be:
+- a value to resolve with,
+- a PromiseLike whose resolution will be adopted by the returned Promise, or
+- a function which is invoked when the timer fires and may return a value or a PromiseLike.
+
+If `result` is a function, it is called when the timer elapses; if it returns a Promise,
+the returned Promise will adopt that Promise's outcome.
 
 ###### Type parameters
 
@@ -510,7 +792,7 @@ Creates a Promise that resolves after a specified number of milliseconds.
 
 `Promise`\<`T`\>
 
-A new Promise that resolves with the specified result after the specified delay.
+A Promise that resolves with the specified result after the specified delay.
 
 ___
 
@@ -636,6 +918,67 @@ const domainNameObjects = await PromiseUtils.repeat(
   [] as APIGateway.DomainName[],
 );
 ```
+
+___
+
+##### runPeriodically
+
+▸ `Static` **runPeriodically**\<`T`\>(`operation`, `interval`, `options?`): `Object`
+
+Runs an operation periodically with configurable intervals and stopping conditions.
+
+- `interval` may be a single number (ms), an array of numbers, or a function
+  that receives the iteration number (starting at 1) and returns the next
+  interval in milliseconds or `undefined` to stop.
+- If the interval array runs out of elements or the function returns `undefined`
+  (or a negative value), no further invocations will be scheduled.
+
+Options:
+- `maxExecutions` stop after N runs (inclusive).
+- `maxDurationMs` stop after elapsed ms since the first scheduled start.
+- `schedule` controls how the interval is measured:
+  - `'delayAfterEnd'`: wait the interval after the previous operation completes
+    before scheduling the next one (equivalent to a fixed delay between ends).
+  - `'delayBetweenStarts'`: keep start times on a regular schedule (interval measured
+    between the starts of successive operations).
+  The default schedule is `'delayBetweenStarts'`.
+
+Returns an object with `stop()` to cancel further executions and `done` which
+resolves when the periodic runner stops. If the provided `operation` throws or
+rejects, the `done` promise will reject with that error so callers can handle it.
+
+Note: The first invocation of `operation` is scheduled after the first interval
+elapses (i.e. this function does NOT call `operation` immediately). If you need
+an immediate run, invoke `operation(1)` yourself before calling `runPeriodically`.
+
+###### Type parameters
+
+| Name | Description |
+| :------ | :------ |
+| `T` | The operation return type (ignored by the runner; used for typing). |
+
+###### Parameters
+
+| Name | Type | Description |
+| :------ | :------ | :------ |
+| `operation` | (`iteration`: `number`) => `T` \| `Promise`\<`T`\> | Function to run each iteration. Receives the iteration index (1-based). |
+| `interval` | `number` \| `number`[] \| (`iteration`: `number`) => `undefined` \| `number` | Number \| number[] \| ((iteration: number) => number\|undefined) defining waits. |
+| `options?` | `Object` | Optional configuration. |
+| `options.maxDurationMs?` | `number` | - |
+| `options.maxExecutions?` | `number` | - |
+| `options.schedule?` | ``"delayAfterEnd"`` \| ``"delayBetweenStarts"`` | - |
+
+###### Returns
+
+`Object`
+
+An object containing `stop()` to cancel further executions and `done` Promise
+         which resolves when the periodic runner stops (or rejects if the operation errors).
+
+| Name | Type |
+| :------ | :------ |
+| `done` | `Promise`\<`void`\> |
+| `stop` | () => `void` |
 
 ___
 
