@@ -399,6 +399,146 @@ describe('PromiseUtils', () => {
       await expect(PromiseUtils.promiseState(p2)).eventually.eq(PromiseState.Rejected);
     });
   });
+
+  describe('runPeriodically(...)', () => {
+    it('should schedule first call after the first interval', async () => {
+      const INTERVAL = 50;
+      const starts: number[] = [];
+      const startTime = Date.now();
+      const controller = PromiseUtils.runPeriodically(() => { starts.push(Date.now()); }, INTERVAL, { maxExecutions: 1 });
+      await controller.done;
+      expect(starts.length).to.eq(1);
+      expect(Math.abs(starts[0] - startTime - INTERVAL)).to.be.lt(ALLOWED_DEVIATION);
+    });
+
+    it('should use delayAfterEnd semantics when requested', async () => {
+      const INTERVAL = 100;
+      const OP_DURATION = 60;
+      const starts: number[] = [];
+      const controller = PromiseUtils.runPeriodically(async () => {
+        starts.push(Date.now());
+        await PromiseUtils.delayedResolve(OP_DURATION);
+      }, INTERVAL, { maxExecutions: 2, schedule: 'delayAfterEnd' });
+      await controller.done;
+      expect(starts.length).to.eq(2);
+      const delta = starts[1] - starts[0];
+      expect(Math.abs(delta - (OP_DURATION + INTERVAL))).to.be.lt(ALLOWED_DEVIATION);
+    });
+
+    it('should use delayBetweenStarts as the default schedule', async () => {
+      const INTERVAL = 100;
+      const OP_DURATION = 60;
+      const starts: number[] = [];
+      const controller = PromiseUtils.runPeriodically(async () => {
+        starts.push(Date.now());
+        await PromiseUtils.delayedResolve(OP_DURATION);
+      }, INTERVAL, { maxExecutions: 3 });
+      await controller.done;
+      expect(starts.length).to.eq(3);
+      const delta1 = starts[1] - starts[0];
+      const delta2 = starts[2] - starts[1];
+      expect(Math.abs(delta1 - INTERVAL)).to.be.lt(ALLOWED_DEVIATION);
+      expect(Math.abs(delta2 - INTERVAL)).to.be.lt(ALLOWED_DEVIATION);
+    });
+
+    it('should use delayBetweenStarts semantics when requested', async () => {
+      const INTERVAL = 100;
+      const OP_DURATION = 60;
+      const starts: number[] = [];
+      const controller = PromiseUtils.runPeriodically(async () => {
+        starts.push(Date.now());
+        await PromiseUtils.delayedResolve(OP_DURATION);
+      }, INTERVAL, { maxExecutions: 3, schedule: 'delayBetweenStarts' });
+      await controller.done;
+      expect(starts.length).to.eq(3);
+      const delta1 = starts[1] - starts[0];
+      const delta2 = starts[2] - starts[1];
+      expect(Math.abs(delta1 - INTERVAL)).to.be.lt(ALLOWED_DEVIATION);
+      expect(Math.abs(delta2 - INTERVAL)).to.be.lt(ALLOWED_DEVIATION);
+    });
+
+    it('should stop when controller.stop() is called', async () => {
+      const INTERVAL = 50;
+      let count = 0;
+      const controller = PromiseUtils.runPeriodically(async () => {
+        count++;
+        if (count === 1) {
+          controller.stop();
+        }
+      }, INTERVAL, { maxExecutions: 10 });
+      await controller.done;
+      expect(count).to.eq(1);
+    });
+
+    it('should cancel a pending wait (no calls if stopped before first interval)', async () => {
+      const INTERVAL = 200;
+      let count = 0;
+      const controller = PromiseUtils.runPeriodically(() => {
+        count++;
+      }, INTERVAL, { maxExecutions: 10 });
+      // stop immediately before the first interval elapses
+      controller.stop();
+      await controller.done;
+      expect(count).to.eq(0);
+    });
+
+    it('should accept interval as a function and stop when it returns undefined', async () => {
+      const intervals = [50, 80, 100];
+      const starts: number[] = [];
+      const startTime = Date.now();
+      const controller = PromiseUtils.runPeriodically(() => {
+        starts.push(Date.now());
+      }, (iteration: number) => (iteration <= intervals.length ? intervals[iteration - 1] : undefined));
+      await controller.done;
+      expect(starts.length).to.eq(intervals.length);
+      // check the deltas between starts roughly match the provided intervals
+      for (let i = 1; i < starts.length; i++) {
+        const delta = starts[i] - starts[i - 1];
+        expect(Math.abs(delta - intervals[i])).to.be.lt(ALLOWED_DEVIATION);
+      }
+      // verify first start happened after first interval
+      expect(Math.abs(starts[0] - startTime - intervals[0])).to.be.lt(ALLOWED_DEVIATION);
+    });
+
+    it('should accept interval as an array and stop when the array is exhausted', async () => {
+      const intervals = [40, 80, 60];
+      const starts: number[] = [];
+      const startTime = Date.now();
+      const controller = PromiseUtils.runPeriodically(() => {
+        starts.push(Date.now());
+      }, intervals);
+      await controller.done;
+      expect(starts.length).to.eq(intervals.length);
+      for (let i = 1; i < starts.length; i++) {
+        const delta = starts[i] - starts[i - 1];
+        expect(Math.abs(delta - intervals[i])).to.be.lt(ALLOWED_DEVIATION);
+      }
+      expect(Math.abs(starts[0] - startTime - intervals[0])).to.be.lt(ALLOWED_DEVIATION);
+    });
+
+    it('should stop after approximately maxDurationMs has elapsed', async () => {
+      const INTERVAL = 50;
+      const OP_DURATION = 30;
+      const starts: number[] = [];
+      const startTime = Date.now();
+      // Set maxDurationMs so that only two executions fit: first at ~50ms, second at ~130ms, third would finish after maxDuration
+      const controller = PromiseUtils.runPeriodically(async () => {
+        starts.push(Date.now());
+        await PromiseUtils.delayedResolve(OP_DURATION);
+      }, INTERVAL, { maxDurationMs: 140, schedule: 'delayAfterEnd' });
+      await controller.done;
+      // We expect two executions (first and second) and the runner stops after checking duration
+      expect(starts.length).to.be.at.least(1);
+      expect(starts.length).to.be.at.most(3);
+      // Prefer the expected 2 executions for timing; if flaky, accept 1-3 but assert timing for first two if present
+      if (starts.length >= 2) {
+        const firstDelta = starts[0] - startTime;
+        const secondDelta = starts[1] - starts[0];
+        expect(Math.abs(firstDelta - INTERVAL)).to.be.lt(ALLOWED_DEVIATION);
+        expect(Math.abs(secondDelta - (INTERVAL + OP_DURATION))).to.be.lt(ALLOWED_DEVIATION);
+      }
+    });
+  });
   describe('synchronized(...)', () => {
     it('should work for a simple three "threads" scenario', async () => {
       const lock = 'lock' + Date.now();

@@ -381,6 +381,115 @@ export abstract class PromiseUtils {
   static async synchronised<T>(lock: any, operation: (previousState: PromiseState | undefined, previousSettledState: PromiseState | undefined, previousResult: any) => Promise<T>): Promise<T> {
     return PromiseUtils.synchronized(lock, operation);
   }
+
+  /**
+   * Runs an operation periodically with configurable intervals and stopping conditions.
+   *
+   * - `interval` may be a single number (ms), an array of numbers, or a function
+   *   that receives the iteration number (starting at 1) and returns the next
+   *   interval in milliseconds or `undefined` to stop.
+   * - If the interval array runs out of elements or the function returns `undefined`
+   *   (or a negative value), no further invocations will be scheduled.
+   *
+   * Options:
+   * - `maxExecutions` stop after N runs (inclusive).
+   * - `maxDurationMs` stop after elapsed ms since the first scheduled start.
+   * - `schedule` controls how the interval is measured:
+  *   - `'delayAfterEnd'`: wait the interval after the previous operation completes
+   *     before scheduling the next one (equivalent to a fixed delay between ends).
+   *   - `'delayBetweenStarts'`: keep start times on a regular schedule (interval measured
+   *     between the starts of successive operations).
+  *   The default schedule is `'delayBetweenStarts'`.
+   *
+  * Returns an object with `stop()` to cancel further executions and `done` which
+  * resolves when the periodic runner stops. If the provided `operation` throws or
+  * rejects, the `done` promise will reject with that error so callers can handle it.
+  *
+  * Note: The first invocation of `operation` is scheduled after the first interval
+  * elapses (i.e. this function does NOT call `operation` immediately). If you need
+  * an immediate run, invoke `operation(1)` yourself before calling `runPeriodically`.
+   *
+   * @template T The operation return type (ignored by the runner; used for typing).
+   * @param operation Function to run each iteration. Receives the iteration index (1-based).
+   * @param interval Number | number[] | ((iteration: number) => number|undefined) defining waits.
+   * @param options Optional configuration.
+   * @returns An object containing `stop()` to cancel further executions and `done` Promise
+   *          which resolves when the periodic runner stops (or rejects if the operation errors).
+   */
+  static runPeriodically<T>(
+    operation: (iteration: number) => Promise<T> | T,
+    interval: number | Array<number> | ((iteration: number) => number | undefined),
+    options?: {
+      maxExecutions?: number;
+      maxDurationMs?: number;
+      schedule?: 'delayAfterEnd' | 'delayBetweenStarts';
+    },
+  ): { stop: () => void; done: Promise<void> } {
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let waitResolve: (() => void) | undefined;
+
+    const stop = () => {
+      stopped = true;
+      if (timer !== undefined) {
+        clearTimeout(timer);
+        timer = undefined;
+      }
+      if (waitResolve) {
+        // resolve the pending wait so the runner can notice `stopped` and exit
+        const r = waitResolve;
+        waitResolve = undefined;
+        r();
+      }
+    };
+
+    const getInterval = (iteration: number): number | undefined => {
+      if (Array.isArray(interval)) {
+        return interval[iteration - 1];
+      }
+      if (typeof interval === 'function') {
+        return interval(iteration);
+      }
+      return interval;
+    };
+
+    const done = (async () => {
+      const startTime = Date.now();
+      let iteration = 0;
+      // lastStart tracks the start time of the previous iteration (used by delayBetweenStarts)
+      let lastStart = Date.now();
+
+      while (!stopped) {
+        const nextIteration = iteration + 1;
+        const nextInterval = getInterval(nextIteration);
+        if (nextInterval == null || nextInterval < 0) break;
+
+        const schedule = options?.schedule ?? 'delayBetweenStarts';
+        const waitMs = schedule === 'delayBetweenStarts'
+          ? Math.max(0, lastStart + nextInterval - Date.now())
+          : nextInterval;
+
+        // wait (cancelable via stop() which clears the timeout and resolves the wait)
+        await new Promise<void>(resolve => {
+          waitResolve = resolve;
+          timer = setTimeout(() => { timer = undefined; waitResolve = undefined; resolve(); }, waitMs);
+        });
+        waitResolve = undefined;
+        if (stopped) break;
+
+        iteration = nextIteration;
+        lastStart = Date.now();
+
+        // let errors propagate to the done promise so caller can decide handling
+        await operation(iteration);
+
+        if (options?.maxExecutions && iteration >= options.maxExecutions) break;
+        if (options?.maxDurationMs && (Date.now() - startTime) >= options.maxDurationMs) break;
+      }
+    })();
+
+    return { stop, done };
+  }
 }
 
 /**
@@ -427,3 +536,8 @@ export const synchronised = PromiseUtils.synchronised;
  * See {@link PromiseUtils.promiseState} for full documentation.
  */
 export const promiseState = PromiseUtils.promiseState;
+
+/**
+ * See {@link PromiseUtils.runPeriodically} for full documentation.
+ */
+export const runPeriodically = PromiseUtils.runPeriodically;
