@@ -3,16 +3,19 @@
 These Promise-related utilities boast 100% test coverage, ensuring robust reliability.
 The package, free of external dependencies, offers essential functions such as:
 
-- `repeat`: Executes an operation repeatedly, very useful to collect all results through pagination.
-- `withRetry`: Retries an operation until a specified condition is met.
-- `withConcurrency`: Executes multiple operations with specified level of concurrency, and abort remaining operations when an error happens.
-- `inParallel`: Executes multiple operations with specified level of concurrency, all operations are guaranteed to be executed regardless of any possible error.
+- `repeat`: Executes an operation repeatedly; useful for collecting paged results.
+- `withRetry`: Retries an operation with configurable backoff and retry predicate.
+- `withConcurrency`: Runs jobs in parallel with a concurrency limit and aborts remaining jobs on the first error.
+- `inParallel`: Runs jobs in parallel with a concurrency limit and returns all results and errors (does not abort on any error by default).
 - `delayedResolve`: Creates a Promise that resolves after a specified delay.
 - `delayedReject`: Creates a Promise that rejects after a specified delay.
-- `timeoutResolve`: Applies a timeout to a Promise and resolves with a specified result if the timeout occurs.
-- `timeoutReject`: Applies a timeout to a Promise and rejects with a specified error/reason if the timeout occurs.
-- `promiseState`: Retrieves the state of a Promise.
-- `synchronized`: Provides mutual exclusion for concurrent operations using a lock mechanism, similar to `synchronized` in Java.
+- `cancellableDelayedResolve`: Like `delayedResolve` but returns `{ stop(), promise }` to allow cancelling before the timer fires.
+- `cancellableDelayedReject`: Like `delayedReject` but returns `{ stop(), promise }` to allow cancelling before the timer fires.
+- `timeoutResolve`: Applies a timeout to a Promise and resolves with a fallback value if the timeout occurs.
+- `timeoutReject`: Applies a timeout to a Promise and rejects with a fallback reason if the timeout occurs.
+- `promiseState`: Retrieves the state of a Promise (Pending/Fulfilled/Rejected).
+- `synchronized` / `synchronised`: Provides mutual exclusion (lock) semantics for async operations.
+- `runPeriodically`: Runs an operation periodically with configurable intervals and stopping conditions.
 
 [![Version](https://img.shields.io/npm/v/@handy-common-utils/promise-utils.svg)](https://npmjs.org/package/@handy-common-utils/promise-utils)
 [![Downloads/week](https://img.shields.io/npm/dw/@handy-common-utils/promise-utils.svg)](https://npmjs.org/package/@handy-common-utils/promise-utils)
@@ -27,63 +30,77 @@ First add it as a dependency:
 npm install @handy-common-utils/promise-utils
 ```
 
-Then you can use it in the code:
+Then you can use it in the code. Below are minimal examples; full short snippets are grouped in the "Examples" section further down.
 
 ```javascript
 import { PromiseUtils } from '@handy-common-utils/promise-utils';
 
-// delayedResolve(...), delayedReject(...), promiseState(...)
-const p1 = PromiseUtils.delayedResolve(50, 1);
-const p2 = PromiseUtils.delayedReject(50, 2);
-await expect(PromiseUtils.promiseState(p1)).eventually.eq(PromiseState.Pending);
-await expect(PromiseUtils.promiseState(p2)).eventually.eq(PromiseState.Pending);
-await PromiseUtils.delayedResolve(80);
-await expect(PromiseUtils.promiseState(p1)).eventually.eq(PromiseState.Fulfilled);
-await expect(PromiseUtils.promiseState(p2)).eventually.eq(PromiseState.Rejected);
+// basic usage (short):
+await PromiseUtils.delayedResolve(50, 'ok');
+await PromiseUtils.timeoutReject(PromiseUtils.delayedReject(80, '1'), 10, '2');
 
-// timeoutReject(...)
-const p = PromiseUtils.timeoutReject(PromiseUtils.delayedReject(80, '1'), 10, '2');
-await expect(p).to.be.rejectedWith('2');
-
-// repeat(...)
-async repeatFetchingItemsByPosition<T>(
-  fetchItemsByPosition: (parameter: { position?: string }) => Promise<{ position?: string; items?: Array<T> }>,
-) {
-  return PromiseUtils.repeat(
-    fetchItemsByPosition,
-    response => response.position ? { position: response.position } : null,
-    (collection, response) => response.items ? collection.concat(response.items) : collection,
-    [] as Array<T>,
-  );
-}
+// See the Examples section below for more grouped snippets (Timers, Concurrency, Scheduling).
 ```
 
-You can either import and use the [PromiseUtils class](#classespromiseutilsmd) as shown above,
-or you can import its re-exported functions directly like below:
+You can either import and use the [PromiseUtils class](#classespromiseutilsmd) as shown above, or import only the helpers you need. For example:
 
 ```javascript
-import { withRetry, inParallel, FIBONACCI_SEQUENCE, EXPONENTIAL_SEQUENCE } from '@handy-common-utils/promise-utils';
+import { withRetry, delayedResolve, cancellableDelayedReject, withConcurrency, inParallel, runPeriodically } from '@handy-common-utils/promise-utils';
 
-// withRetry(...)
-const result = await withRetry(() => doSomething(), [100, 200, 300, 500, 800, 1000]);
-const result2 = await withRetry(() => doSomething(), Array.from({length: 10}, (_v, i) => 1000 * Math.min(FIBONACCI_SEQUENCE[i], 10)), err => err.statusCode === 429);
-const result3 = await withRetry(() => doSomething(), attempt => attempt <= 8 ? 1000 * Math.min(EXPONENTIAL_SEQUENCE[attempt - 1], 10) : undefined, err => err.statusCode === 429);
-statusCode === 429);
+// Import-focused example — the actual usage is the same as using PromiseUtils.
+const result = await withRetry(() => doSomething(), [100, 200, 300]);
+const p = delayedResolve(100, 'ok');
+const c = cancellableDelayedReject(2000, 'timeout-reason');
+// c.stop() can cancel the scheduled rejection before it fires
+```
 
-// Capture errors in the returned array
-const attributesAndPossibleErrors = await PromiseUtils.inParallel(5, topicArns, async (topicArn) => {
-  const topicAttributes = (await sns.getTopicAttributes({ TopicArn: topicArn }).promise()).Attributes!;
-  return topicAttributes;
-});
+## Quick examples
 
-// Abort on the first error
-let results: Array<JobResult>;
+### Timers
+
+```javascript
+// delayedResolve / delayedReject
+await delayedResolve(50, 'ok');
+
+// cancellableDelayedResolve: returns { stop, promise }
+const { stop, promise } = cancellableDelayedResolve(1000, () => Promise.resolve('ready'));
+// cancel before it fires
+stop();
+```
+
+`delayedReject` and `cancellableDelayedReject` are similar.
+
+### Concurrency & Parallelism
+
+```javascript
+// withConcurrency: abort remaining on first error
 try {
-  results = await PromiseUtils.withConcurrency(100, jobs, async (job) => processor.process(job));
-} catch (error) {
-  // handle the error
+  await withConcurrency(5, jobs, async (job) => process(job));
+} catch (err) {
+  // an error occurred and remaining jobs may not have been started
 }
 
+// inParallel: collect all results and errors
+const results = await inParallel(5, jobs, async (job) => process(job));
+// results contains either values or error objects in the original order
+```
+
+### Scheduling & Utilities
+
+```javascript
+// runPeriodically: schedule repeated work
+const controller = runPeriodically(async (i) => {
+  console.log('iteration', i);
+  await delayedResolve(10);
+}, 100, { maxExecutions: 5 });
+...
+controller.stop(); // stop now
+await controller.done; // wait until it stops
+
+// synchronized: lock a resource
+await PromiseUtils.synchronized('my-lock', async () => {
+  // only one callback for 'my-lock' runs at a time
+});
 ```
 
 # API
