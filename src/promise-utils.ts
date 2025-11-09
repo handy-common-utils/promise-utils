@@ -27,11 +27,13 @@ export const EXPONENTIAL_SEQUENCE = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024
 /**
  * The state of a Promise can only be one of: Pending, Fulfilled, and Rejected.
  */
-export enum PromiseState {
-  Pending = 'Pending',
-  Fulfilled = 'Fulfilled',
-  Rejected = 'Rejected',
-}
+export const PromiseState = {
+  Pending: 'Pending',
+  Fulfilled: 'Fulfilled',
+  Rejected: 'Rejected',
+} as const;
+
+export type PromiseStateType = keyof typeof PromiseState;
 
 export abstract class PromiseUtils {
   /**
@@ -379,8 +381,8 @@ export abstract class PromiseUtils {
         ms,
         () => PromiseUtils.promiseState(promise)
                 .then(state => state === PromiseState.Pending ?
-                  (typeof result === 'function' ? (result as () => T|PromiseLike<T>|undefined)() : result) :
-                  {} as any), // this object would not be used because the operation should have already resolved
+                    (typeof result === 'function' ? (result as () => T|PromiseLike<T>|undefined)() : result) :
+                    {} as any), // this object would not be used because the operation should have already resolved
       ),
     ]);
   }
@@ -405,8 +407,8 @@ export abstract class PromiseUtils {
         ms,
         () => PromiseUtils.promiseState(promise)
                 .then(state => state === PromiseState.Pending ?
-                  (typeof rejectReason === 'function' ? (rejectReason as () => R|PromiseLike<R>)() : rejectReason) :
-                  {}), // this object would not be used because the operation should have already resolved
+                    (typeof rejectReason === 'function' ? (rejectReason as () => R|PromiseLike<R>)() : rejectReason) :
+                    {}), // this object would not be used because the operation should have already resolved
       ),
     ]);
   }
@@ -418,7 +420,7 @@ export abstract class PromiseUtils {
    * @param p The Promise whose state is to be determined.
    * @returns A Promise that resolves immediately with the state of the input Promise.
    */
-  static promiseState(p: Promise<any>): Promise<PromiseState> {
+  static promiseState(p: Promise<any>): Promise<PromiseStateType> {
     const t = {};
     return Promise.race([p, t])
       .then(v => (v === t) ? PromiseState.Pending : PromiseState.Fulfilled, () => PromiseState.Rejected);
@@ -438,10 +440,10 @@ export abstract class PromiseUtils {
    * @param operation The function that performs the computation and returns a Promise.
    * @returns The result of the operation function.
    */
-  static async synchronized<T>(lock: any, operation: (previousState: PromiseState | undefined, previousSettledState: PromiseState | undefined, previousResult: any) => Promise<T>): Promise<T> {
+  static async synchronized<T>(lock: any, operation: (previousState: PromiseStateType | undefined, previousSettledState: PromiseStateType | undefined, previousResult: any) => Promise<T>): Promise<T> {
     let resultPromise: Promise<T>;
     const previousResultPromise = PromiseUtils.synchronizationLocks.get(lock);
-    let previousState: PromiseState | undefined;
+    let previousState: PromiseStateType | undefined;
     if (previousResultPromise !== undefined) {
       previousState = await PromiseUtils.promiseState(previousResultPromise);
     }
@@ -471,7 +473,7 @@ export abstract class PromiseUtils {
    * @param operation The function that performs the computation and returns a Promise.
    * @returns The result of the operation function.
    */
-  static async synchronised<T>(lock: any, operation: (previousState: PromiseState | undefined, previousSettledState: PromiseState | undefined, previousResult: any) => Promise<T>): Promise<T> {
+  static async synchronised<T>(lock: any, operation: (previousState: PromiseStateType | undefined, previousSettledState: PromiseStateType | undefined, previousResult: any) => Promise<T>): Promise<T> {
     return PromiseUtils.synchronized(lock, operation);
   }
 
@@ -488,24 +490,27 @@ export abstract class PromiseUtils {
    * - `maxExecutions` stop after N runs (inclusive).
    * - `maxDurationMs` stop after elapsed ms since the first scheduled start.
    * - `schedule` controls how the interval is measured:
-  *   - `'delayAfterEnd'`: wait the interval after the previous operation completes
+   *   - `'delayAfterEnd'`: wait the interval after the previous operation completes
    *     before scheduling the next one (equivalent to a fixed delay between ends).
    *   - `'delayBetweenStarts'`: keep start times on a regular schedule (interval measured
    *     between the starts of successive operations).
-  *   The default schedule is `'delayBetweenStarts'`.
+   *   The default schedule is `'delayBetweenStarts'`.
    *
-  * Returns an object with `stop()` to cancel further executions and `done` which
-  * resolves when the periodic runner stops. If the provided `operation` throws or
-  * rejects, the `done` promise will reject with that error so callers can handle it.
-  *
-  * Note: The first invocation of `operation` is scheduled after the first interval
-  * elapses (i.e. this function does NOT call `operation` immediately). If you need
-  * an immediate run, invoke `operation(1)` yourself before calling `runPeriodically`.
+   * Returns an object with `stop()` to cancel further executions and `done` which
+   * resolves when the periodic runner stops. If the provided `operation` throws or
+   * rejects, the `done` promise will reject with that error so callers can handle it.
+   *
+   * Note: The first invocation of `operation` is scheduled after the first interval
+   * elapses (i.e. this function does NOT call `operation` immediately). If you need
+   * an immediate run, invoke `operation(1)` yourself before calling `runPeriodically`.
    *
    * @template T The operation return type (ignored by the runner; used for typing).
    * @param operation Function to run each iteration. Receives the iteration index (1-based).
    * @param interval Number | number[] | ((iteration: number) => number|undefined) defining waits.
    * @param options Optional configuration.
+   * @param options.maxExecutions Stop after N executions.
+   * @param options.maxDurationMs Stop after N milliseconds.
+   * @param options.schedule How to measure intervals: `'delayAfterEnd'` or `'delayBetweenStarts'`.
    * @returns An object containing `stop()` to cancel further executions and `done` Promise
    *          which resolves when the periodic runner stops (or rejects if the operation errors).
    */
@@ -761,9 +766,38 @@ export const promiseState = PromiseUtils.promiseState;
 /**
  * Runs an operation periodically with configurable intervals and stopping conditions.
  *
- * @param operation The operation to run periodically.
- * @param interval The interval (ms), array of intervals, or function returning interval per iteration.
- * @param options Options for maxExecutions, maxDurationMs, and schedule type.
- * @returns An object with stop() and done Promise which resolves when the periodic runner stops (or rejects if the operation errors).
+ * - `interval` may be a single number (ms), an array of numbers, or a function
+ *   that receives the iteration number (starting at 1) and returns the next
+ *   interval in milliseconds or `undefined` to stop.
+ * - If the interval array runs out of elements or the function returns `undefined`
+ *   (or a negative value), no further invocations will be scheduled.
+ *
+ * Options:
+ * - `maxExecutions` stop after N runs (inclusive).
+ * - `maxDurationMs` stop after elapsed ms since the first scheduled start.
+ * - `schedule` controls how the interval is measured:
+ *   - `'delayAfterEnd'`: wait the interval after the previous operation completes
+ *     before scheduling the next one (equivalent to a fixed delay between ends).
+ *   - `'delayBetweenStarts'`: keep start times on a regular schedule (interval measured
+ *     between the starts of successive operations).
+ *   The default schedule is `'delayBetweenStarts'`.
+ *
+ * Returns an object with `stop()` to cancel further executions and `done` which
+ * resolves when the periodic runner stops. If the provided `operation` throws or
+ * rejects, the `done` promise will reject with that error so callers can handle it.
+ *
+ * Note: The first invocation of `operation` is scheduled after the first interval
+ * elapses (i.e. this function does NOT call `operation` immediately). If you need
+ * an immediate run, invoke `operation(1)` yourself before calling `runPeriodically`.
+ *
+ * @template T The operation return type (ignored by the runner; used for typing).
+ * @param operation Function to run each iteration. Receives the iteration index (1-based).
+ * @param interval Number | number[] | ((iteration: number) => number|undefined) defining waits.
+ * @param options Optional configuration.
+ * @param options.maxExecutions Stop after N executions.
+ * @param options.maxDurationMs Stop after N milliseconds.
+ * @param options.schedule How to measure intervals: `'delayAfterEnd'` or `'delayBetweenStarts'`.
+ * @returns An object containing `stop()` to cancel further executions and `done` Promise
+ *          which resolves when the periodic runner stops (or rejects if the operation errors).
  */
 export const runPeriodically = PromiseUtils.runPeriodically;

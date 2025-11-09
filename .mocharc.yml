@@ -6,4 +6,5 @@ exclude:
 require:
   - source-map-support/register
   - ts-node/register
-
+ts-node:
+  project: tsconfig.test.json

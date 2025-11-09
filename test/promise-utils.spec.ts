@@ -1,10 +1,10 @@
-/* eslint-disable max-nested-callbacks */
-import { expect } from 'chai';
 import * as chai from 'chai';
+import { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import { describe, it } from 'mocha';
 chai.use(chaiAsPromised);
 
-import { PromiseState, PromiseUtils, cancellableDelayedReject, cancellableDelayedResolve } from '../src/promise-utils';
+import { cancellableDelayedReject, cancellableDelayedResolve, PromiseState, PromiseUtils } from '../src/promise-utils';
 
 const ALLOWED_DEVIATION = 20;
 
@@ -27,7 +27,6 @@ describe('PromiseUtils', () => {
       return expect(promiseWithRetry).to.eventually.rejectedWith(Error, ERROR_MSG)
               .then(() => {
                 expect(deltas.length).eq(BACKOFF_PERIODS.length);
-                // eslint-disable-next-line unicorn/no-array-for-each
                 BACKOFF_PERIODS.forEach((expectedTime, i) => expect(Math.abs(deltas[i] - expectedTime)).lt(ALLOWED_DEVIATION));
               });
     });
@@ -49,7 +48,6 @@ describe('PromiseUtils', () => {
       return expect(promiseWithRetry).to.eventually.rejectedWith(Error, ERROR_MSG)
               .then(() => {
                 expect(deltas.length).eq(BACKOFF_PERIODS.length);
-                // eslint-disable-next-line unicorn/no-array-for-each
                 BACKOFF_PERIODS.forEach((expectedTime, i) => expect(Math.abs(deltas[i] - expectedTime)).lt(ALLOWED_DEVIATION));
               });
     });
@@ -93,7 +91,6 @@ describe('PromiseUtils', () => {
       return expect(promiseWithRetry).to.eventually.eq(SUCC_RESULT)
               .then(() => {
                 expect(deltas.length).eq(2);
-                // eslint-disable-next-line unicorn/no-array-for-each
                 BACKOFF_PERIODS.slice(0, 2).forEach((expectedTime, i) => expect(Math.abs(deltas[i] - expectedTime)).lt(ALLOWED_DEVIATION));
               });
     });
@@ -318,7 +315,7 @@ describe('PromiseUtils', () => {
                                           });
         return promise.then(() => {
           const duration = endTime - startTime;
-          const expectedDuration = (DELAY + OVERHEAD) * NUM / (p < 1 ? 1 : p);   // + overhead per operation
+          const expectedDuration = (DELAY + OVERHEAD) * NUM / (Math.max(p, 1));   // + overhead per operation
           // console.log(`+${expectedDuration} -${duration}`);
           if (p <= -10) {  // those p <= -10 are warm up and calibration runs
             OVERHEAD += (duration - expectedDuration) * 0.9 / NUM;  // calibration
@@ -361,7 +358,7 @@ describe('PromiseUtils', () => {
                                           });
         return promise.then(() => {
           const duration = endTime - startTime;
-          const expectedDuration = (DELAY + OVERHEAD) * NUM / (p < 1 ? 1 : p);   // + overhead per operation
+          const expectedDuration = (DELAY + OVERHEAD) * NUM / (Math.max(p, 1));   // + overhead per operation
           // console.log(`+${expectedDuration} -${duration}`);
           if (p <= -10) {  // those p <= -10 are warm up and calibration runs
             OVERHEAD += (duration - expectedDuration) * 0.9 / NUM;  // calibration
