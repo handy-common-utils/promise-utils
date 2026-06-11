@@ -193,7 +193,7 @@ If the `reason` is a PromiseLike that rejects, its rejection value will be used 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `ms` | `number` | The number of milliseconds after which the scheduled rejection will occur. |
-| `reason` | `R` \| `PromiseLike`\<`R`\> \| () => `R` \| `PromiseLike`\<`R`\> | The reason for the rejection, or a function that supplies the reason. |
+| `reason` | `R` \| `PromiseLike`\<`R`\> \| (() => `R` \| `PromiseLike`\<`R`\>) | The reason for the rejection, or a function that supplies the reason. |
 
 ###### Returns
 
@@ -236,7 +236,7 @@ resolve with that Promise's resolution (i.e. it behaves like resolving with a Pr
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `ms` | `number` | The number of milliseconds after which the scheduled resolution will occur. |
-| `result?` | `T` \| `PromiseLike`\<`T`\> \| () => `T` \| `PromiseLike`\<`T`\> | The result to be resolved by the Promise, or a function that supplies the result. |
+| `result?` | `T` \| `PromiseLike`\<`T`\> \| (() => `T` \| `PromiseLike`\<`T`\>) | The result to be resolved by the Promise, or a function that supplies the result. |
 
 ###### Returns
 
@@ -280,7 +280,7 @@ returned value if it resolves).
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `ms` | `number` | The number of milliseconds after which the created Promise will reject. |
-| `reason` | `R` \| `PromiseLike`\<`R`\> \| () => `R` \| `PromiseLike`\<`R`\> | The reason for the rejection, or a function that supplies the reason. |
+| `reason` | `R` \| `PromiseLike`\<`R`\> \| (() => `R` \| `PromiseLike`\<`R`\>) | The reason for the rejection, or a function that supplies the reason. |
 
 ###### Returns
 
@@ -317,7 +317,7 @@ the returned Promise will adopt that Promise's outcome.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `ms` | `number` | The number of milliseconds after which the created Promise will resolve. |
-| `result?` | `T` \| `PromiseLike`\<`T`\> \| () => `T` \| `PromiseLike`\<`T`\> | The result to be resolved by the Promise, or a function that supplies the result. |
+| `result?` | `T` \| `PromiseLike`\<`T`\> \| (() => `T` \| `PromiseLike`\<`T`\>) | The result to be resolved by the Promise, or a function that supplies the result. |
 
 ###### Returns
 
@@ -341,7 +341,7 @@ Errors from operations are returned alongside results in the returned array.
 This function only resolves when all jobs/operations are settled (either resolved or rejected).
 
 If `options.abortOnError` is set to true, this function throws (or rejects with) an error immediately when any job/operation fails.
-In this mode, some jobs/operations may not be executed if one fails.
+In this mode, no further operations will be started after a failure occurs.
 
 ###### Type Parameters
 
@@ -416,7 +416,7 @@ A Promise that resolves immediately with the state of the input Promise.
 
 ##### repeat()
 
-> `static` **repeat**\<`Result`, `Param`, `Collection`\>(`operation`, `nextParameter`, `collect`, `initialCollection`, `initialParameter`): `Promise`\<`Collection`\>
+> `static` **repeat**\<`Result`, `Param`, `Collection`\>(`operation`, `nextParameter`, `collect`, `initialCollection`, `initialParameter?`): `Promise`\<`Collection`\>
 
 Executes an operation repeatedly and collects all the results.
 This function is very useful for many scenarios, such like client-side pagination.
@@ -501,7 +501,7 @@ an immediate run, invoke `operation(1)` yourself before calling `runPeriodically
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `operation` | (`iteration`) => `T` \| `Promise`\<`T`\> | Function to run each iteration. Receives the iteration index (1-based). |
-| `interval` | `number` \| `number`[] \| (`iteration`) => `number` \| `undefined` | Number | number[] | ((iteration: number) => number|undefined) defining waits. |
+| `interval` | `number` \| `number`[] \| ((`iteration`) => `number` \| `undefined`) | Number | number[] | ((iteration: number) => number|undefined) defining waits. |
 | `options?` | \{ `maxDurationMs?`: `number`; `maxExecutions?`: `number`; `schedule?`: `"delayAfterEnd"` \| `"delayBetweenStarts"`; \} | Optional configuration. |
 | `options.maxDurationMs?` | `number` | Stop after N milliseconds. |
 | `options.maxExecutions?` | `number` | Stop after N executions. |
@@ -607,9 +607,9 @@ Note: The rejection of the `operation` parameter is not handled by this function
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `operation` | `Promise`\<`T`\> \| () => `Promise`\<`T`\> | The original Promise or a function that returns a Promise to which the timeout will be applied. |
+| `operation` | `Promise`\<`T`\> \| (() => `Promise`\<`T`\>) | The original Promise or a function that returns a Promise to which the timeout will be applied. |
 | `ms` | `number` | The number of milliseconds for the timeout. |
-| `rejectReason` | `R` \| `PromiseLike`\<`R`\> \| () => `R` \| `PromiseLike`\<`R`\> | The reason to reject with if the timeout occurs, or a function that supplies the reason. |
+| `rejectReason` | `R` \| `PromiseLike`\<`R`\> \| (() => `R` \| `PromiseLike`\<`R`\>) | The reason to reject with if the timeout occurs, or a function that supplies the reason. |
 
 ###### Returns
 
@@ -642,9 +642,9 @@ You may want to handle it outside this function to avoid warnings like "(node:43
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `operation` | `Promise`\<`T`\> \| () => `Promise`\<`T`\> | The original Promise or a function that returns a Promise to which the timeout will be applied. |
+| `operation` | `Promise`\<`T`\> \| (() => `Promise`\<`T`\>) | The original Promise or a function that returns a Promise to which the timeout will be applied. |
 | `ms` | `number` | The number of milliseconds for the timeout. |
-| `result?` | `T` \| `PromiseLike`\<`T`\> \| () => `T` \| `PromiseLike`\<`T`\> | The result to resolve with if the timeout occurs, or a function that supplies the result. |
+| `result?` | `T` \| `PromiseLike`\<`T`\> \| (() => `T` \| `PromiseLike`\<`T`\>) | The result to resolve with if the timeout occurs, or a function that supplies the result. |
 
 ###### Returns
 
@@ -663,7 +663,7 @@ A new Promise that resolves to the specified result if the timeout occurs.
 Executes multiple jobs/operations with a specified level of concurrency.
 
 Unlike `inParallel(...)`, this function may throw or reject an error when a job/operation fails.
-When an error is re-thrown, remaining operations will not be executed.
+When an error is thrown, the function rejects immediately, and no further operations will be started.
 If you want all the operations to always be executed, use [PromiseUtils.inParallel](#api-inparallel) instead.
 
 ###### Type Parameters
@@ -704,7 +704,7 @@ const attributes = await PromiseUtils.withConcurrency(5, topicArns, async (topic
 
 ##### withRetry()
 
-> `static` **withRetry**\<`Result`, `TError`\>(`operation`, `backoff`, `shouldRetry`): `Promise`\<`Result`\>
+> `static` **withRetry**\<`Result`, `TError`\>(`operation`, `backoff`, `shouldRetry?`): `Promise`\<`Result`\>
 
 Repeatedly performs an operation until a specified criteria is met.
 
@@ -720,7 +720,7 @@ Repeatedly performs an operation until a specified criteria is met.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `operation` | (`attempt`, `previousResult`, `previousError`) => `Promise`\<`Result`\> | A function that outputs a Promise result. Typically, the operation does not use its arguments. |
-| `backoff` | `number`[] \| (`attempt`, `previousResult`, `previousError`) => `number` \| `undefined` | An array of retry backoff periods (in milliseconds) or a function for calculating them. If retry is desired, the specified backoff period is waited before the next call to the operation. If the array runs out of elements or the function returns `undefined` or a negative number, no further calls to the operation will be made. The `attempt` argument passed to the backoff function starts from 1, as it is called immediately after the first attempt and before the first retry. |
+| `backoff` | `number`[] \| ((`attempt`, `previousResult`, `previousError`) => `number` \| `undefined`) | An array of retry backoff periods (in milliseconds) or a function for calculating them. If retry is desired, the specified backoff period is waited before the next call to the operation. If the array runs out of elements or the function returns `undefined` or a negative number, no further calls to the operation will be made. The `attempt` argument passed to the backoff function starts from 1, as it is called immediately after the first attempt and before the first retry. |
 | `shouldRetry` | (`previousError`, `previousResult`, `attempt`) => `boolean` | A predicate function for deciding whether another call to the operation should occur. If this argument is not defined, a retry will occur whenever the operation rejects with an error. The `shouldRetry` function is evaluated before the `backoff`. The `attempt` argument passed to the shouldRetry function starts from 1. |
 
 ###### Returns
@@ -803,14 +803,14 @@ The state of a Promise can only be one of: Pending, Fulfilled, and Rejected.
 
 | Name | Type | Default value |
 | ------ | ------ | ------ |
-| <a id="api-fulfilled"></a> `Fulfilled` | `"Fulfilled"` | `'Fulfilled'` |
-| <a id="api-pending"></a> `Pending` | `"Pending"` | `'Pending'` |
-| <a id="api-rejected"></a> `Rejected` | `"Rejected"` | `'Rejected'` |
+| <a id="api-property-fulfilled"></a> `Fulfilled` | `"Fulfilled"` | `'Fulfilled'` |
+| <a id="api-property-pending"></a> `Pending` | `"Pending"` | `'Pending'` |
+| <a id="api-property-rejected"></a> `Rejected` | `"Rejected"` | `'Rejected'` |
 
 
 <a id="variablescancellabledelayedrejectmd"></a>
 
-### Variable: cancellableDelayedReject()
+### Variable: cancellableDelayedReject
 
 > `const` **cancellableDelayedReject**: \<`T`, `R`\>(`ms`, `reason`) => `object` = `PromiseUtils.cancellableDelayedReject`
 
@@ -846,7 +846,7 @@ If the `reason` is a PromiseLike that rejects, its rejection value will be used 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `ms` | `number` | The number of milliseconds after which the scheduled rejection will occur. |
-| `reason` | `R` \| `PromiseLike`\<`R`\> \| () => `R` \| `PromiseLike`\<`R`\> | The reason for the rejection, or a function that supplies the reason. |
+| `reason` | `R` \| `PromiseLike`\<`R`\> \| (() => `R` \| `PromiseLike`\<`R`\>) | The reason for the rejection, or a function that supplies the reason. |
 
 #### Returns
 
@@ -861,9 +861,13 @@ An object with `stop()` and `promise`.
 
 #### Param
 
+**ms**
+
 The number of milliseconds after which the scheduled rejection will occur.
 
 #### Param
+
+**reason**
 
 The reason for the rejection, or a function that supplies the reason.
 
@@ -874,7 +878,7 @@ An object with stop() and promise.
 
 <a id="variablescancellabledelayedresolvemd"></a>
 
-### Variable: cancellableDelayedResolve()
+### Variable: cancellableDelayedResolve
 
 > `const` **cancellableDelayedResolve**: \<`T`\>(`ms`, `result?`) => `object` = `PromiseUtils.cancellableDelayedResolve`
 
@@ -910,7 +914,7 @@ resolve with that Promise's resolution (i.e. it behaves like resolving with a Pr
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `ms` | `number` | The number of milliseconds after which the scheduled resolution will occur. |
-| `result?` | `T` \| `PromiseLike`\<`T`\> \| () => `T` \| `PromiseLike`\<`T`\> | The result to be resolved by the Promise, or a function that supplies the result. |
+| `result?` | `T` \| `PromiseLike`\<`T`\> \| (() => `T` \| `PromiseLike`\<`T`\>) | The result to be resolved by the Promise, or a function that supplies the result. |
 
 #### Returns
 
@@ -925,9 +929,13 @@ An object with `stop()` and `promise`.
 
 #### Param
 
+**ms**
+
 The number of milliseconds after which the scheduled resolution will occur.
 
 #### Param
+
+**result**
 
 The result to be resolved by the Promise, or a function that supplies the result.
 
@@ -938,7 +946,7 @@ An object with stop() and promise.
 
 <a id="variablesdelayedrejectmd"></a>
 
-### Variable: delayedReject()
+### Variable: delayedReject
 
 > `const` **delayedReject**: \<`T`, `R`\>(`ms`, `reason`) => `Promise`\<`T`\> = `PromiseUtils.delayedReject`
 
@@ -976,7 +984,7 @@ returned value if it resolves).
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `ms` | `number` | The number of milliseconds after which the created Promise will reject. |
-| `reason` | `R` \| `PromiseLike`\<`R`\> \| () => `R` \| `PromiseLike`\<`R`\> | The reason for the rejection, or a function that supplies the reason. |
+| `reason` | `R` \| `PromiseLike`\<`R`\> \| (() => `R` \| `PromiseLike`\<`R`\>) | The reason for the rejection, or a function that supplies the reason. |
 
 #### Returns
 
@@ -986,9 +994,13 @@ A Promise that rejects with the specified reason after the specified delay.
 
 #### Param
 
+**ms**
+
 The number of milliseconds after which the created Promise will reject.
 
 #### Param
+
+**reason**
 
 The reason for the rejection, or a function that supplies the reason.
 
@@ -999,7 +1011,7 @@ A Promise that rejects with the specified reason after the specified delay.
 
 <a id="variablesdelayedresolvemd"></a>
 
-### Variable: delayedResolve()
+### Variable: delayedResolve
 
 > `const` **delayedResolve**: \<`T`\>(`ms`, `result?`) => `Promise`\<`T`\> = `PromiseUtils.delayedResolve`
 
@@ -1034,7 +1046,7 @@ the returned Promise will adopt that Promise's outcome.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `ms` | `number` | The number of milliseconds after which the created Promise will resolve. |
-| `result?` | `T` \| `PromiseLike`\<`T`\> \| () => `T` \| `PromiseLike`\<`T`\> | The result to be resolved by the Promise, or a function that supplies the result. |
+| `result?` | `T` \| `PromiseLike`\<`T`\> \| (() => `T` \| `PromiseLike`\<`T`\>) | The result to be resolved by the Promise, or a function that supplies the result. |
 
 #### Returns
 
@@ -1044,9 +1056,13 @@ A Promise that resolves with the specified result after the specified delay.
 
 #### Param
 
+**ms**
+
 The number of milliseconds after which the created Promise will resolve.
 
 #### Param
+
+**result**
 
 The result to be resolved by the Promise, or a function that supplies the result.
 
@@ -1057,7 +1073,7 @@ A Promise that resolves with the specified result after the specified delay.
 
 <a id="variablesinparallelmd"></a>
 
-### Variable: inParallel()
+### Variable: inParallel
 
 > `const` **inParallel**: \<`Data`, `Result`, `TError`\>(`parallelism`, `jobs`, `operation`, `options?`) => `Promise`\<(`Result` \| `TError`)[]\> = `PromiseUtils.inParallel`
 
@@ -1069,7 +1085,7 @@ Errors from operations are returned alongside results in the returned array.
 This function only resolves when all jobs/operations are settled (either resolved or rejected).
 
 If options.abortOnError is set to true, this function throws (or rejects with) an error immediately when any job/operation fails.
-In this mode, some jobs/operations may not be executed if one fails.
+In this mode, no further operations will be started after a failure occurs.
 
 Executes multiple jobs/operations in parallel. By default, all operations are executed regardless of any failures.
 In most cases, using [PromiseUtils.withConcurrency](#withconcurrency) might be more convenient.
@@ -1079,7 +1095,7 @@ Errors from operations are returned alongside results in the returned array.
 This function only resolves when all jobs/operations are settled (either resolved or rejected).
 
 If `options.abortOnError` is set to true, this function throws (or rejects with) an error immediately when any job/operation fails.
-In this mode, some jobs/operations may not be executed if one fails.
+In this mode, no further operations will be started after a failure occurs.
 
 #### Type Parameters
 
@@ -1127,21 +1143,31 @@ try {
 
 #### Param
 
+**parallelism**
+
 The number of jobs/operations to run concurrently.
 
 #### Param
+
+**jobs**
 
 The job data to be processed. This function can safely handle an infinite or unknown number of elements.
 
 #### Param
 
+**operation**
+
 The function that processes job data asynchronously.
 
 #### Param
 
+**options**
+
 Options to control the function's behavior.
 
 #### Param
+
+**options.abortOnError**
 
 If true, the function aborts and throws an error on the first failed operation.
 
@@ -1154,7 +1180,7 @@ A promise that resolves to an array containing the results of the operations.
 
 <a id="variablespromisestatemd"></a>
 
-### Variable: promiseState()
+### Variable: promiseState
 
 > `const` **promiseState**: (`p`) => `Promise`\<`"Pending"` \| `"Fulfilled"` \| `"Rejected"`\> = `PromiseUtils.promiseState`
 
@@ -1178,6 +1204,8 @@ A Promise that resolves immediately with the state of the input Promise.
 
 #### Param
 
+**p**
+
 The Promise whose state is to be determined.
 
 #### Returns
@@ -1187,7 +1215,7 @@ A Promise that resolves immediately with the state of the input Promise.
 
 <a id="variablesrepeatmd"></a>
 
-### Variable: repeat()
+### Variable: repeat
 
 > `const` **repeat**: \<`Result`, `Param`, `Collection`\>(`operation`, `nextParameter`, `collect`, `initialCollection`, `initialParameter`) => `Promise`\<`Collection`\> = `PromiseUtils.repeat`
 
@@ -1234,21 +1262,31 @@ const domainNameObjects = await PromiseUtils.repeat(
 
 #### Param
 
+**operation**
+
 A function that takes a parameter as input and returns a result. Typically, the parameter has optional fields to control paging.
 
 #### Param
+
+**nextParameter**
 
 A function for calculating the next parameter from the operation result. Normally, this parameter controls paging. This function should return null when no further invocation of the operation function is desired. If further invocation is desired, the return value of this function can be a Promise or a non-Promise value.
 
 #### Param
 
+**collect**
+
 A function for merging the operation result into the collection.
 
 #### Param
 
+**initialCollection**
+
 The initial collection, which will be the first argument passed to the first invocation of the collect function.
 
 #### Param
+
+**initialParameter**
 
 The parameter for the first operation.
 
@@ -1259,7 +1297,7 @@ A promise that resolves to a collection of all the results returned by the opera
 
 <a id="variablesrunperiodicallymd"></a>
 
-### Variable: runPeriodically()
+### Variable: runPeriodically
 
 > `const` **runPeriodically**: \<`T`\>(`operation`, `interval`, `options?`) => `object` = `PromiseUtils.runPeriodically`
 
@@ -1326,7 +1364,7 @@ an immediate run, invoke `operation(1)` yourself before calling `runPeriodically
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `operation` | (`iteration`) => `T` \| `Promise`\<`T`\> | Function to run each iteration. Receives the iteration index (1-based). |
-| `interval` | `number` \| `number`[] \| (`iteration`) => `number` \| `undefined` | Number | number[] | ((iteration: number) => number|undefined) defining waits. |
+| `interval` | `number` \| `number`[] \| ((`iteration`) => `number` \| `undefined`) | Number | number[] | ((iteration: number) => number|undefined) defining waits. |
 | `options?` | \{ `maxDurationMs?`: `number`; `maxExecutions?`: `number`; `schedule?`: `"delayAfterEnd"` \| `"delayBetweenStarts"`; \} | Optional configuration. |
 | `options.maxDurationMs?` | `number` | Stop after N milliseconds. |
 | `options.maxExecutions?` | `number` | Stop after N executions. |
@@ -1346,29 +1384,43 @@ An object containing `stop()` to cancel further executions and `done` Promise
 
 #### Template
 
+**T**
+
 The operation return type (ignored by the runner; used for typing).
 
 #### Param
+
+**operation**
 
 Function to run each iteration. Receives the iteration index (1-based).
 
 #### Param
 
+**interval**
+
 Number | number[] | ((iteration: number) => number|undefined) defining waits.
 
 #### Param
+
+**options**
 
 Optional configuration.
 
 #### Param
 
+**options.maxExecutions**
+
 Stop after N executions.
 
 #### Param
 
+**options.maxDurationMs**
+
 Stop after N milliseconds.
 
 #### Param
+
+**options.schedule**
 
 How to measure intervals: `'delayAfterEnd'` or `'delayBetweenStarts'`.
 
@@ -1380,7 +1432,7 @@ An object containing `stop()` to cancel further executions and `done` Promise
 
 <a id="variablessynchronisedmd"></a>
 
-### Variable: synchronised()
+### Variable: synchronised
 
 > `const` **synchronised**: \<`T`\>(`lock`, `operation`) => `Promise`\<`T`\> = `PromiseUtils.synchronised`
 
@@ -1409,9 +1461,13 @@ The result of the operation function.
 
 #### Param
 
+**lock**
+
 The object (such as a string, a number, or this in a class) used to identify the lock.
 
 #### Param
+
+**operation**
 
 The function that performs the computation and returns a Promise.
 
@@ -1422,7 +1478,7 @@ The result of the operation function.
 
 <a id="variablessynchronizedmd"></a>
 
-### Variable: synchronized()
+### Variable: synchronized
 
 > `const` **synchronized**: \<`T`\>(`lock`, `operation`) => `Promise`\<`T`\> = `PromiseUtils.synchronized`
 
@@ -1461,9 +1517,13 @@ The result of the operation function.
 
 #### Param
 
+**lock**
+
 The object (such as a string, a number, or this in a class) used to identify the lock.
 
 #### Param
+
+**operation**
 
 The function that performs the computation and returns a Promise.
 
@@ -1474,7 +1534,7 @@ The result of the operation function.
 
 <a id="variablestimeoutrejectmd"></a>
 
-### Variable: timeoutReject()
+### Variable: timeoutReject
 
 > `const` **timeoutReject**: \<`T`, `R`\>(`operation`, `ms`, `rejectReason`) => `Promise`\<`T`\> = `PromiseUtils.timeoutReject`
 
@@ -1501,9 +1561,9 @@ Note: The rejection of the `operation` parameter is not handled by this function
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `operation` | `Promise`\<`T`\> \| () => `Promise`\<`T`\> | The original Promise or a function that returns a Promise to which the timeout will be applied. |
+| `operation` | `Promise`\<`T`\> \| (() => `Promise`\<`T`\>) | The original Promise or a function that returns a Promise to which the timeout will be applied. |
 | `ms` | `number` | The number of milliseconds for the timeout. |
-| `rejectReason` | `R` \| `PromiseLike`\<`R`\> \| () => `R` \| `PromiseLike`\<`R`\> | The reason to reject with if the timeout occurs, or a function that supplies the reason. |
+| `rejectReason` | `R` \| `PromiseLike`\<`R`\> \| (() => `R` \| `PromiseLike`\<`R`\>) | The reason to reject with if the timeout occurs, or a function that supplies the reason. |
 
 #### Returns
 
@@ -1513,13 +1573,19 @@ A new Promise that rejects with the specified reason if the timeout occurs.
 
 #### Param
 
+**operation**
+
 The original Promise or a function that returns a Promise to which the timeout will be applied.
 
 #### Param
 
+**ms**
+
 The number of milliseconds for the timeout.
 
 #### Param
+
+**rejectReason**
 
 The reason to reject with if the timeout occurs, or a function that supplies the reason.
 
@@ -1530,7 +1596,7 @@ A new Promise that rejects with the specified reason if the timeout occurs.
 
 <a id="variablestimeoutresolvemd"></a>
 
-### Variable: timeoutResolve()
+### Variable: timeoutResolve
 
 > `const` **timeoutResolve**: \<`T`\>(`operation`, `ms`, `result?`) => `Promise`\<`T`\> = `PromiseUtils.timeoutResolve`
 
@@ -1558,9 +1624,9 @@ You may want to handle it outside this function to avoid warnings like "(node:43
 
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
-| `operation` | `Promise`\<`T`\> \| () => `Promise`\<`T`\> | The original Promise or a function that returns a Promise to which the timeout will be applied. |
+| `operation` | `Promise`\<`T`\> \| (() => `Promise`\<`T`\>) | The original Promise or a function that returns a Promise to which the timeout will be applied. |
 | `ms` | `number` | The number of milliseconds for the timeout. |
-| `result?` | `T` \| `PromiseLike`\<`T`\> \| () => `T` \| `PromiseLike`\<`T`\> | The result to resolve with if the timeout occurs, or a function that supplies the result. |
+| `result?` | `T` \| `PromiseLike`\<`T`\> \| (() => `T` \| `PromiseLike`\<`T`\>) | The result to resolve with if the timeout occurs, or a function that supplies the result. |
 
 #### Returns
 
@@ -1570,13 +1636,19 @@ A new Promise that resolves to the specified result if the timeout occurs.
 
 #### Param
 
+**operation**
+
 The original Promise or a function that returns a Promise to which the timeout will be applied.
 
 #### Param
 
+**ms**
+
 The number of milliseconds for the timeout.
 
 #### Param
+
+**result**
 
 The result to resolve with if the timeout occurs, or a function that supplies the result.
 
@@ -1587,7 +1659,7 @@ A new Promise that resolves to the specified result if the timeout occurs.
 
 <a id="variableswithconcurrencymd"></a>
 
-### Variable: withConcurrency()
+### Variable: withConcurrency
 
 > `const` **withConcurrency**: \<`Data`, `Result`\>(`concurrency`, `jobs`, `operation`) => `Promise`\<`Result`[]\> = `PromiseUtils.withConcurrency`
 
@@ -1596,7 +1668,7 @@ Executes multiple jobs/operations with a specified level of concurrency.
 Executes multiple jobs/operations with a specified level of concurrency.
 
 Unlike `inParallel(...)`, this function may throw or reject an error when a job/operation fails.
-When an error is re-thrown, remaining operations will not be executed.
+When an error is thrown, the function rejects immediately, and no further operations will be started.
 If you want all the operations to always be executed, use [PromiseUtils.inParallel](#inparallel) instead.
 
 #### Type Parameters
@@ -1633,13 +1705,19 @@ const attributes = await PromiseUtils.withConcurrency(5, topicArns, async (topic
 
 #### Param
 
+**concurrency**
+
 The number of jobs/operations to run concurrently.
 
 #### Param
 
+**jobs**
+
 The job data to be processed. This function can handle an infinite or unknown number of elements safely.
 
 #### Param
+
+**operation**
 
 The function that processes job data asynchronously.
 
@@ -1651,7 +1729,7 @@ A promise that resolves to an array containing the results from the operation fu
 
 <a id="variableswithretrymd"></a>
 
-### Variable: withRetry()
+### Variable: withRetry
 
 > `const` **withRetry**: \<`Result`, `TError`\>(`operation`, `backoff`, `shouldRetry`) => `Promise`\<`Result`\> = `PromiseUtils.withRetry`
 
@@ -1671,7 +1749,7 @@ Repeatedly performs an operation until a specified criteria is met.
 | Parameter | Type | Description |
 | ------ | ------ | ------ |
 | `operation` | (`attempt`, `previousResult`, `previousError`) => `Promise`\<`Result`\> | A function that outputs a Promise result. Typically, the operation does not use its arguments. |
-| `backoff` | `number`[] \| (`attempt`, `previousResult`, `previousError`) => `number` \| `undefined` | An array of retry backoff periods (in milliseconds) or a function for calculating them. If retry is desired, the specified backoff period is waited before the next call to the operation. If the array runs out of elements or the function returns `undefined` or a negative number, no further calls to the operation will be made. The `attempt` argument passed to the backoff function starts from 1, as it is called immediately after the first attempt and before the first retry. |
+| `backoff` | `number`[] \| ((`attempt`, `previousResult`, `previousError`) => `number` \| `undefined`) | An array of retry backoff periods (in milliseconds) or a function for calculating them. If retry is desired, the specified backoff period is waited before the next call to the operation. If the array runs out of elements or the function returns `undefined` or a negative number, no further calls to the operation will be made. The `attempt` argument passed to the backoff function starts from 1, as it is called immediately after the first attempt and before the first retry. |
 | `shouldRetry` | (`previousError`, `previousResult`, `attempt`) => `boolean` | A predicate function for deciding whether another call to the operation should occur. If this argument is not defined, a retry will occur whenever the operation rejects with an error. The `shouldRetry` function is evaluated before the `backoff`. The `attempt` argument passed to the shouldRetry function starts from 1. |
 
 #### Returns
@@ -1690,13 +1768,19 @@ const result3 = await PromiseUtils.withRetry(() => doSomething(), attempt => att
 
 #### Param
 
+**operation**
+
 A function that outputs a Promise result. Typically, the operation does not use its arguments.
 
 #### Param
 
+**backoff**
+
 An array of retry backoff periods (in milliseconds) or a function for calculating them.
 
 #### Param
+
+**shouldRetry**
 
 A predicate function for deciding whether another call to the operation should occur.
 
