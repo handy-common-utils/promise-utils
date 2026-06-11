@@ -341,6 +341,28 @@ describe('PromiseUtils', () => {
       await promise.catch(() => null);
       expect(count).to.be.lessThan(NUM);
     });
+    it('should not start any new operations after an error occurs', async () => {
+      const jobs = Array.from({ length: 10 }, (_, i) => i);
+      let count = 0;
+      const startedJobs: number[] = [];
+
+      const promise = PromiseUtils.withConcurrency(2, jobs, async (job) => {
+        count++;
+        startedJobs.push(job);
+        if (job === 2) {
+          throw new Error('Failure on job 2');
+        }
+        await PromiseUtils.delayedResolve(30);
+        return job;
+      });
+
+      await expect(promise).to.be.rejectedWith('Failure on job 2');
+      // Wait a bit to ensure any background jobs would have run if not stopped
+      await PromiseUtils.delayedResolve(50);
+
+      expect(startedJobs).to.deep.equal([0, 1, 2]);
+      expect(count).to.equal(3);
+    });
   });
   describe('inParallel(...)', () => {
     let OVERHEAD = 1;
@@ -448,6 +470,38 @@ describe('PromiseUtils', () => {
       await PromiseUtils.delayedResolve(80);
       expect(resultFunctionExecuted).to.be.false;
     });
+
+    it('should clear the timeout timer if the operation settles before the timeout', async () => {
+      const originalSetTimeout = globalThis.setTimeout;
+      const originalClearTimeout = globalThis.clearTimeout;
+      let timerId: any = null;
+      let cleared = false;
+
+      globalThis.setTimeout = function (cb: any, ms: any, ...args: any[]) {
+        const id = originalSetTimeout(cb, ms, ...args);
+        if (ms === 5000) {
+          timerId = id;
+        }
+        return id;
+      } as any;
+
+      globalThis.clearTimeout = function (id: any) {
+        if (id === timerId) {
+          cleared = true;
+        }
+        originalClearTimeout(id);
+      };
+
+      try {
+        const p = PromiseUtils.timeoutResolve(PromiseUtils.delayedResolve(10, 1), 5000, 2);
+        await p;
+        await new Promise(resolve => originalSetTimeout(resolve, 0));
+        expect(cleared).to.be.true;
+      } finally {
+        globalThis.setTimeout = originalSetTimeout;
+        globalThis.clearTimeout = originalClearTimeout;
+      }
+    });
   });
   describe('timeoutReject(...)', () => {
     it('should return original fulfilled result when not timed-out', async () => {
@@ -488,6 +542,38 @@ describe('PromiseUtils', () => {
       await expect(p).eventually.eq(1);
       await PromiseUtils.delayedResolve(80);
       expect(reasonFunctionExecuted).to.be.false;
+    });
+
+    it('should clear the timeout timer if the operation settles before the timeout for reject', async () => {
+      const originalSetTimeout = globalThis.setTimeout;
+      const originalClearTimeout = globalThis.clearTimeout;
+      let timerId: any = null;
+      let cleared = false;
+
+      globalThis.setTimeout = function (cb: any, ms: any, ...args: any[]) {
+        const id = originalSetTimeout(cb, ms, ...args);
+        if (ms === 5000) {
+          timerId = id;
+        }
+        return id;
+      } as any;
+
+      globalThis.clearTimeout = function (id: any) {
+        if (id === timerId) {
+          cleared = true;
+        }
+        originalClearTimeout(id);
+      };
+
+      try {
+        const p = PromiseUtils.timeoutReject(PromiseUtils.delayedResolve(10, 1), 5000, '2');
+        await p;
+        await new Promise(resolve => originalSetTimeout(resolve, 0));
+        expect(cleared).to.be.true;
+      } finally {
+        globalThis.setTimeout = originalSetTimeout;
+        globalThis.clearTimeout = originalClearTimeout;
+      }
     });
   });
   describe('promiseState(...)', () => {

@@ -139,7 +139,7 @@ export abstract class PromiseUtils {
    * Executes multiple jobs/operations with a specified level of concurrency.
    * 
    * Unlike `inParallel(...)`, this function may throw or reject an error when a job/operation fails.
-   * When an error is re-thrown, remaining operations will not be executed.
+   * When an error is thrown, the function rejects immediately, and no further operations will be started.
    * If you want all the operations to always be executed, use {@link PromiseUtils.inParallel} instead.
    * 
    * @example
@@ -176,7 +176,7 @@ export abstract class PromiseUtils {
    * This function only resolves when all jobs/operations are settled (either resolved or rejected).
    *
    * If `options.abortOnError` is set to true, this function throws (or rejects with) an error immediately when any job/operation fails.
-   * In this mode, some jobs/operations may not be executed if one fails.
+   * In this mode, no further operations will be started after a failure occurs.
    *
    * @example
    * // Capture errors in the returned array
@@ -219,10 +219,14 @@ export abstract class PromiseUtils {
     }
     const jobResults = new Array<Result | TError>();
     let index = 0;
+    let aborted = false;
     const iterator = jobs[Symbol.iterator]();
     const promises = Array.from({ length: Math.floor(parallelism) }).fill(0).map(async _ => {
       let iteratorResult: IteratorResult<Data, any>;
       while (true) {
+        if (aborted) {
+          break;
+        }
         iteratorResult = iterator.next();
         if (iteratorResult.done) {
           break;
@@ -230,7 +234,12 @@ export abstract class PromiseUtils {
         const job = iteratorResult.value;
         const jobIndex = index++;
         const jobResultPromise = operation(job, jobIndex);
-        jobResults[jobIndex] = options?.abortOnError ? await jobResultPromise : await jobResultPromise.catch(error => error);
+        try {
+          jobResults[jobIndex] = options?.abortOnError ? await jobResultPromise : await jobResultPromise.catch(error => error);
+        } catch (error) {
+          aborted = true;
+          throw error;
+        }
       }
     });
     await Promise.all(promises);
@@ -375,15 +384,17 @@ export abstract class PromiseUtils {
    */
   static timeoutResolve<T>(operation: Promise<T> | (() => Promise<T>), ms: number, result?: T | PromiseLike<T> | (() => (T | PromiseLike<T>)) | undefined): Promise<T> {
     const promise = typeof operation === 'function' ? operation() : operation;
+    const { stop, promise: timeoutPromise } = PromiseUtils.cancellableDelayedResolve(
+      ms,
+      () => PromiseUtils.promiseState(promise)
+              .then(state => state === PromiseState.Pending ?
+                  (typeof result === 'function' ? (result as () => T|PromiseLike<T>|undefined)() : result) :
+                  {} as any),
+    );
+    promise.then(() => stop(), () => stop());
     return Promise.race([
       promise,
-      PromiseUtils.delayedResolve(
-        ms,
-        () => PromiseUtils.promiseState(promise)
-                .then(state => state === PromiseState.Pending ?
-                    (typeof result === 'function' ? (result as () => T|PromiseLike<T>|undefined)() : result) :
-                    {} as any), // this object would not be used because the operation should have already resolved
-      ),
+      timeoutPromise,
     ]);
   }
 
@@ -401,15 +412,17 @@ export abstract class PromiseUtils {
    */
   static timeoutReject<T = never, R = any>(operation: Promise<T> | (() => Promise<T>), ms: number, rejectReason: R | PromiseLike<R> | (() => R|PromiseLike<R>)): Promise<T> {
     const promise = typeof operation === 'function' ? operation() : operation;
+    const { stop, promise: timeoutPromise } = PromiseUtils.cancellableDelayedReject<T, R>(
+      ms,
+      () => PromiseUtils.promiseState(promise)
+              .then(state => state === PromiseState.Pending ?
+                  (typeof rejectReason === 'function' ? (rejectReason as () => R|PromiseLike<R>)() : rejectReason) :
+                  {} as any),
+    );
+    promise.then(() => stop(), () => stop());
     return Promise.race([
       promise,
-      PromiseUtils.delayedReject(
-        ms,
-        () => PromiseUtils.promiseState(promise)
-                .then(state => state === PromiseState.Pending ?
-                    (typeof rejectReason === 'function' ? (rejectReason as () => R|PromiseLike<R>)() : rejectReason) :
-                    {}), // this object would not be used because the operation should have already resolved
-      ),
+      timeoutPromise,
     ]);
   }
 
@@ -630,7 +643,7 @@ export const withConcurrency = PromiseUtils.withConcurrency;
  * This function only resolves when all jobs/operations are settled (either resolved or rejected).
  *
  * If options.abortOnError is set to true, this function throws (or rejects with) an error immediately when any job/operation fails.
- * In this mode, some jobs/operations may not be executed if one fails.
+ * In this mode, no further operations will be started after a failure occurs.
  *
  * @param parallelism The number of jobs/operations to run concurrently.
  * @param jobs The job data to be processed. This function can safely handle an infinite or unknown number of elements.
