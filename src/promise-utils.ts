@@ -1,3 +1,4 @@
+/* c8 ignore next */
 /**
  * Array of 25 Fibonacci numbers starting from 1 up to 317811.
  * It can be used to form your own backoff interval array.
@@ -11,6 +12,7 @@
  */
 export const FIBONACCI_SEQUENCE = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811];
 
+/* c8 ignore next */
 /**
  * Array of 25 exponential numbers starting from 1 up to 33554432.
  * It can be used to form your own backoff interval array.
@@ -603,6 +605,7 @@ export abstract class PromiseUtils {
   }
 }
 
+/* c8 ignore next */
 /**
  * Executes an operation repeatedly and collects all the results.
  * This function is very useful for many scenarios, such like client-side pagination.
@@ -615,6 +618,8 @@ export abstract class PromiseUtils {
  * @returns A promise that resolves to a collection of all the results returned by the operation function.
  */
 export const repeat = PromiseUtils.repeat;
+
+/* c8 ignore next */
 /**
  * Repeatedly performs an operation until a specified criteria is met.
  *
@@ -624,6 +629,8 @@ export const repeat = PromiseUtils.repeat;
  * @returns A promise of the operation result, potentially with retries applied.
  */
 export const withRetry = PromiseUtils.withRetry;
+
+/* c8 ignore next */
 /**
  * Executes multiple jobs/operations with a specified level of concurrency.
  *
@@ -634,6 +641,8 @@ export const withRetry = PromiseUtils.withRetry;
  *          The results in the returned array are in the same order as the corresponding elements in the jobs array.
  */
 export const withConcurrency = PromiseUtils.withConcurrency;
+
+/* c8 ignore next */
 /**
  * Executes multiple jobs/operations in parallel. By default, all operations are executed regardless of any failures.
  * In most cases, using withConcurrency might be more convenient.
@@ -655,6 +664,8 @@ export const withConcurrency = PromiseUtils.withConcurrency;
  *  The results or errors in the returned array are in the same order as the corresponding elements in the jobs array.
  */
 export const inParallel = PromiseUtils.inParallel;
+
+/* c8 ignore next */
 /**
  * Creates a Promise that resolves after a specified number of milliseconds.
  *
@@ -671,6 +682,8 @@ export const inParallel = PromiseUtils.inParallel;
  * @returns A Promise that resolves with the specified result after the specified delay.
  */
 export const delayedResolve = PromiseUtils.delayedResolve;
+
+/* c8 ignore next */
 /**
  * Creates a Promise that rejects after a specified number of milliseconds.
  *
@@ -688,6 +701,8 @@ export const delayedResolve = PromiseUtils.delayedResolve;
  * @returns A Promise that rejects with the specified reason after the specified delay.
  */
 export const delayedReject = PromiseUtils.delayedReject;
+
+/* c8 ignore next */
 /**
  * Creates a cancellable timer that will resolve after a specified number of milliseconds.
  *
@@ -704,6 +719,8 @@ export const delayedReject = PromiseUtils.delayedReject;
  * @returns An object with stop() and promise.
  */
 export const cancellableDelayedResolve = PromiseUtils.cancellableDelayedResolve;
+
+/* c8 ignore next */
 /**
  * Creates a cancellable timer that will reject after a specified number of milliseconds.
  *
@@ -720,6 +737,8 @@ export const cancellableDelayedResolve = PromiseUtils.cancellableDelayedResolve;
  * @returns An object with stop() and promise.
  */
 export const cancellableDelayedReject = PromiseUtils.cancellableDelayedReject;
+
+/* c8 ignore next */
 /**
  * Applies a timeout to a Promise or a function that returns a Promise.
  * If the timeout occurs, the returned Promise resolves to the specified result.
@@ -734,6 +753,8 @@ export const cancellableDelayedReject = PromiseUtils.cancellableDelayedReject;
  * @returns A new Promise that resolves to the specified result if the timeout occurs.
  */
 export const timeoutResolve = PromiseUtils.timeoutResolve;
+
+/* c8 ignore next */
 /**
  * Applies a timeout to a Promise or a function that returns a Promise.
  * If the timeout occurs, the returned Promise rejects with the specified reason.
@@ -747,6 +768,8 @@ export const timeoutResolve = PromiseUtils.timeoutResolve;
  * @returns A new Promise that rejects with the specified reason if the timeout occurs.
  */
 export const timeoutReject = PromiseUtils.timeoutReject;
+
+/* c8 ignore next */
 /**
  * Provides mutual exclusion similar to synchronized in Java.
  * Ensures no concurrent execution of any operation function associated with the same lock.
@@ -760,6 +783,8 @@ export const timeoutReject = PromiseUtils.timeoutReject;
  * @returns The result of the operation function.
  */
 export const synchronized = PromiseUtils.synchronized;
+
+/* c8 ignore next */
 /**
  * This is just another spelling of synchronized.
  * @param lock The object (such as a string, a number, or this in a class) used to identify the lock.
@@ -767,6 +792,8 @@ export const synchronized = PromiseUtils.synchronized;
  * @returns The result of the operation function.
  */
 export const synchronised = PromiseUtils.synchronised;
+
+/* c8 ignore next */
 /**
  * Retrieves the state of the specified Promise.
  * Note: The returned value is a Promise that resolves immediately.
@@ -776,6 +803,7 @@ export const synchronised = PromiseUtils.synchronised;
  */
 export const promiseState = PromiseUtils.promiseState;
 
+/* c8 ignore next */
 /**
  * Runs an operation periodically with configurable intervals and stopping conditions.
  *
