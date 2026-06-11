@@ -1,22 +1,25 @@
 {
-  "include": ["src"],
+  "include": [
+    "src"
+  ],
   "compilerOptions": {
+    "rootDir": "./src",
     "outDir": "dist",
-
-    "lib": ["es2017"],
+    "lib": [
+      "es2021"
+    ],
+    "types": [
+      "node"
+    ],
     "target": "es2017",
-    "module": "commonjs",
-    "moduleResolution": "node",
-
+    "module": "node16",
+    "moduleResolution": "node16",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-
     "strict": true,
     "skipLibCheck": true,
-
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "downlevelIteration": true
   }
 }
