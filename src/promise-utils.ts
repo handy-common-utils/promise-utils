@@ -221,7 +221,7 @@ export abstract class PromiseUtils {
     let index = 0;
     let aborted = false;
     const iterator = jobs[Symbol.iterator]();
-    const promises = Array.from({ length: Math.floor(parallelism) }).fill(0).map(async _ => {
+    const promises = Array.from({ length: Math.floor(parallelism) }, (async _ => {
       let iteratorResult: IteratorResult<Data, any>;
       while (true) {
         if (aborted) {
@@ -241,7 +241,7 @@ export abstract class PromiseUtils {
           throw error;
         }
       }
-    });
+    }));
     await Promise.all(promises);
     return jobResults;
   }

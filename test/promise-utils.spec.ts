@@ -1,3 +1,5 @@
+/* eslint-disable unicorn/no-this-outside-of-class */
+
 import * as chai from 'chai';
 import { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -207,6 +209,26 @@ describe('PromiseUtils', () => {
       const race = Promise.race([c.promise.then(() => 'resolved', () => 'rejected'), PromiseUtils.delayedResolve(30, 'still')]);
       await expect(race).to.eventually.eq('still');
     });
+
+    it('should return early in timer callback if stopped is true but timer fires (line 272)', async () => {
+      // By stubbing clearTimeout to a no-op we force the timer callback to run
+      // even after stop() has been called, exercising the `if (stopped) return;` guard.
+      const originalClearTimeout = globalThis.clearTimeout;
+      globalThis.clearTimeout = () => { /* no-op: let the timer fire */ };
+      try {
+        const DELAY = 20;
+        const { stop, promise } = PromiseUtils.cancellableDelayedResolve(DELAY, 'should-not-resolve');
+        stop(); // sets stopped=true, but clearTimeout is now a no-op
+        // The timer will still fire; the guard should silently return without resolving
+        const race = Promise.race([
+          promise.then(() => 'resolved', () => 'rejected'),
+          PromiseUtils.delayedResolve(DELAY + 30, 'still-pending'),
+        ]);
+        await expect(race).to.eventually.eq('still-pending');
+      } finally {
+        globalThis.clearTimeout = originalClearTimeout;
+      }
+    });
   });
   describe('delayedReject(...)', () => {
     it('should reject with a reason after specified time', () => {
@@ -298,6 +320,26 @@ describe('PromiseUtils', () => {
       const race = Promise.race([c.promise.then(() => 'resolved', () => 'rejected'), PromiseUtils.delayedResolve(30, 'still')]);
       await expect(race).to.eventually.eq('still');
     });
+
+    it('should return early in timer callback if stopped is true but timer fires for reject (line 332)', async () => {
+      // By stubbing clearTimeout to a no-op we force the timer callback to run
+      // even after stop() has been called, exercising the `if (stopped) return;` guard.
+      const originalClearTimeout = globalThis.clearTimeout;
+      globalThis.clearTimeout = () => { /* no-op: let the timer fire */ };
+      try {
+        const DELAY = 20;
+        const { stop, promise } = PromiseUtils.cancellableDelayedReject(DELAY, 'should-not-reject');
+        stop(); // sets stopped=true, but clearTimeout is now a no-op
+        // The timer will still fire; the guard should silently return without rejecting
+        const race = Promise.race([
+          promise.then(() => 'resolved', () => 'rejected'),
+          PromiseUtils.delayedResolve(DELAY + 30, 'still-pending'),
+        ]);
+        await expect(race).to.eventually.eq('still-pending');
+      } finally {
+        globalThis.clearTimeout = originalClearTimeout;
+      }
+    });
   });
   describe('withConcurrency(...)', () => {
     let OVERHEAD = 1;
@@ -306,7 +348,7 @@ describe('PromiseUtils', () => {
         this.timeout(10000);
         const DELAY = 50;
         const NUM = 30;
-        const DATA = Array.from({ length: NUM }).fill(1);
+        const DATA = Array.from({ length: NUM }, (() => 1));
         const startTime = Date.now();
         let endTime = 0;
         const promise = PromiseUtils.withConcurrency(p, DATA, () => PromiseUtils.delayedResolve<void>(DELAY))
@@ -371,7 +413,7 @@ describe('PromiseUtils', () => {
         this.timeout(10000);
         const DELAY = 50;
         const NUM = 30;
-        const DATA = Array.from({ length: NUM }).fill(1);
+        const DATA = Array.from({ length: NUM }, () => 1);
         const startTime = Date.now();
         let endTime = 0;
         const promise = PromiseUtils.inParallel(p, DATA, () => PromiseUtils.delayedResolve<void>(DELAY))
@@ -502,6 +544,30 @@ describe('PromiseUtils', () => {
         globalThis.clearTimeout = originalClearTimeout;
       }
     });
+
+    it('should resolve with {} (non-pending branch) when timer fires after the operation already settled (lines 390-392)', async () => {
+      // We replace cancellableDelayedResolve with a version that returns a no-op stop,
+      // so the timer fires even after the operation settles. When the timer callback runs,
+      // promiseState returns Fulfilled (not Pending), so the ternary returns {} as any.
+      // The overall Promise.race is already settled by the original promise, so {} is ignored.
+      const originalCDR = PromiseUtils.cancellableDelayedResolve.bind(PromiseUtils);
+      (PromiseUtils as any).cancellableDelayedResolve = function(ms: number, result?: any) {
+        // Use the real implementation but override stop to be a no-op
+        const real = originalCDR(ms, result);
+        return { stop: () => { /* no-op */ }, promise: real.promise };
+      };
+      try {
+        // The original promise resolves in 10ms, timeout is 30ms.
+        // Because stop() is now a no-op, the timer fires at 30ms.
+        // At that point promiseState returns Fulfilled, so {} is returned but ignored.
+        const p = PromiseUtils.timeoutResolve(PromiseUtils.delayedResolve(10, 42), 30, 99);
+        await expect(p).to.eventually.eq(42); // original result wins the race
+        // Wait past the timeout to let the timer fire and exercise the branch
+        await PromiseUtils.delayedResolve(40);
+      } finally {
+        (PromiseUtils as any).cancellableDelayedResolve = originalCDR;
+      }
+    });
   });
   describe('timeoutReject(...)', () => {
     it('should return original fulfilled result when not timed-out', async () => {
@@ -573,6 +639,25 @@ describe('PromiseUtils', () => {
       } finally {
         globalThis.setTimeout = originalSetTimeout;
         globalThis.clearTimeout = originalClearTimeout;
+      }
+    });
+
+    it('should resolve with {} (non-pending branch) when timer fires after the operation already settled for reject (lines 418-420)', async () => {
+      // Same approach for timeoutReject: replace cancellableDelayedReject with a no-op stop.
+      const originalCDR = PromiseUtils.cancellableDelayedReject.bind(PromiseUtils);
+      (PromiseUtils as any).cancellableDelayedReject = function(ms: number, reason?: any) {
+        const real = originalCDR(ms, reason);
+        return { stop: () => { /* no-op */ }, promise: real.promise };
+      };
+      try {
+        // The original promise resolves in 10ms, timeout is 30ms.
+        // The timer fires at 30ms; promiseState returns Fulfilled, {} is returned and ignored.
+        const p = PromiseUtils.timeoutReject(PromiseUtils.delayedResolve(10, 42), 30, 'timeout-err');
+        await expect(p).to.eventually.eq(42); // original result wins the race
+        // Wait past the timeout to let the timer fire and exercise the branch
+        await PromiseUtils.delayedResolve(40);
+      } finally {
+        (PromiseUtils as any).cancellableDelayedReject = originalCDR;
       }
     });
   });

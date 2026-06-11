@@ -5,6 +5,5 @@ exclude:
   - '**/node_modules/**'
 require:
   - source-map-support/register
-  - ts-node/register
-ts-node:
-  project: tsconfig.test.json
+node-option:
+  - import=tsx

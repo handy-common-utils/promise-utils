@@ -4,7 +4,7 @@
   "description": "Promise related utilities",
   "scripts": {
     "pretest": "eslint . --ext .ts",
-    "test": "nyc mocha",
+    "test": "c8 mocha",
     "prepare": "shx rm -rf dist && tsc && es-check",
     "preversion": "generate-api-docs-and-update-readme && git add README.md"
   },
@@ -16,7 +16,7 @@
   "types": "dist/promise-utils.d.ts",
   "bin": {},
   "devDependencies": {
-    "@handy-common-utils/dev-dependencies-mocha": "^1.10.1",
+    "@handy-common-utils/dev-dependencies-mocha": "^1.11.13",
     "@types/node": "^18.17.1"
   },
   "publishConfig": {
